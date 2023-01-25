@@ -1,0 +1,15 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-MCompProject.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\MCompProjectEditor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.obj"
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\MCompProject.cpp.obj"
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\MCompProjectGameModeBase.cpp.obj"
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\MCompProject.init.gen.cpp.obj"
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\MCompProjectGameModeBase.gen.cpp.obj"
+"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\Default.rc2.res"
+/OUT:"D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\UnrealEditor-MCompProject.lib"
