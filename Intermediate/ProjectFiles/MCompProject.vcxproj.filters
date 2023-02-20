@@ -11,6 +11,8 @@
     <None Include="..\..\Source\MCompProjectEditor.Target.cs">
       <Filter>Source</Filter>
     </None>
+    <None Include="..\..\.gitattributes" />
+    <None Include="..\..\.gitignore" />
     <Filter Include="Config">
       <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
     </Filter>
@@ -26,6 +28,18 @@
     <Filter Include="Source\MCompProject">
       <UniqueIdentifier>{B29E3694-1BC1-3955-93B2-2E7330691937}</UniqueIdentifier>
     </Filter>
+    <ClCompile Include="..\..\Source\MCompProject\Delaunay.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\Delaunay.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\DelaunayUsage.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\DelaunayUsage.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
     <None Include="..\..\Source\MCompProject\MCompProject.Build.cs">
       <Filter>Source\MCompProject</Filter>
     </None>

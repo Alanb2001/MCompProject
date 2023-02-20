@@ -63,5 +63,5 @@
 /DBUILD_ICON_FILE_NAME="\"..\\Build\\Windows\\Resources\\Default.ico\""
 /DPROJECT_COPYRIGHT_STRING="Fill out your copyright notice in the Description page of Project Settings."
 /DPROJECT_PRODUCT_IDENTIFIER=MCompProject
-/fo "D:\Unreal Projects\MCompProject\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\Default.rc2.res"
+/fo "D:\Unreal Projects\MCompProject\Intermediate\Build\Win64\UnrealEditor\Development\MCompProject\Default.rc2.res"
 "..\Build\Windows\Resources\Default.rc2"

@@ -1,11 +1,11 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unreal projects\\mcompproject\\mcompproject\\intermediate\\build\\win64\\unrealeditor\\inc\\mcompproject\\mcompproject.init.gen.cpp",
+        "Source": "d:\\unreal projects\\mcompproject\\intermediate\\build\\win64\\unrealeditor\\inc\\mcompproject\\mcompproject.init.gen.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unreal projects\\mcompproject\\mcompproject\\intermediate\\build\\win64\\mcompprojecteditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "PCH": "d:\\unreal projects\\mcompproject\\intermediate\\build\\win64\\mcompprojecteditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
         "Includes": [
-            "d:\\unreal projects\\mcompproject\\mcompproject\\intermediate\\build\\win64\\unrealeditor\\development\\mcompproject\\definitions.mcompproject.h"
+            "d:\\unreal projects\\mcompproject\\intermediate\\build\\win64\\unrealeditor\\development\\mcompproject\\definitions.mcompproject.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

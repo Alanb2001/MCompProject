@@ -1,8 +1,8 @@
 {
 	"SourceFiles": [
-		"D:\\Unreal Projects\\MCompProject\\MCompProject\\Source\\MCompProject\\MCompProject.Build.cs",
-		"D:\\Unreal Projects\\MCompProject\\MCompProject\\Source\\MCompProject.Target.cs",
-		"D:\\Unreal Projects\\MCompProject\\MCompProject\\Source\\MCompProjectEditor.Target.cs"
+		"D:\\Unreal Projects\\MCompProject\\Source\\MCompProject\\MCompProject.Build.cs",
+		"D:\\Unreal Projects\\MCompProject\\Source\\MCompProject.Target.cs",
+		"D:\\Unreal Projects\\MCompProject\\Source\\MCompProjectEditor.Target.cs"
 	],
 	"EngineVersion": "5.0.3"
 }
