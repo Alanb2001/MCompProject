@@ -25,19 +25,52 @@
     <None Include="..\..\Config\DefaultGame.ini">
       <Filter>Config</Filter>
     </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Config\HoloLens">
+      <UniqueIdentifier>{4C8DD267-CDE7-336F-8602-F5F485D22BAB}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\HoloLens\HoloLensEngine.ini">
+      <Filter>Config\HoloLens</Filter>
+    </None>
     <Filter Include="Source\MCompProject">
       <UniqueIdentifier>{B29E3694-1BC1-3955-93B2-2E7330691937}</UniqueIdentifier>
     </Filter>
+    <ClCompile Include="..\..\Source\MCompProject\Breakable.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\Breakable.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\Source\MCompProject\Delaunay.cpp">
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\Delaunay.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\DelaunayCalculator.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\DelaunayCalculator.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\DelaunayTriangulation.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\DelaunayTriangulation.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\Source\MCompProject\DelaunayUsage.cpp">
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\DelaunayUsage.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\Geom.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\Geom.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
     <None Include="..\..\Source\MCompProject\MCompProject.Build.cs">
@@ -53,6 +86,30 @@
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\MCompProjectGameModeBase.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\VectorExtensions.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\VectorExtensions.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\VoronoiCalculator.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\VoronoiCalculator.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\VoronoiClipper.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\VoronoiClipper.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\VoronoiDiagram.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\VoronoiDiagram.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
   </ItemGroup>
