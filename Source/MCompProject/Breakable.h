@@ -1,9 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Geom.h"
+#include "VoronoiCalculator.h"
+#include "VoronoiClipper.h"
+#include <vector>
+#include <cassert>
+#include <random>
+#include <cmath>
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 
@@ -39,6 +43,12 @@ public:
 	float Area();
 
 	void Reload();
+
+	void OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult);
+
+	float NormalizedRandom(float mean, float stddev);
+
+	void Break(FVector2D position);
 
 	UStaticMesh* MeshFromPolygon(const TArray<FVector2D>& Polygon, const float Thickness);
 };
