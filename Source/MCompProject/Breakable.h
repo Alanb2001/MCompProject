@@ -46,7 +46,7 @@ public:
 
 	void OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult);
 
-	float NormalizedRandom(float mean, float stddev);
+	//float NormalizedRandom(float mean, float stddev);
 
 	void Break(FVector2D position);
 

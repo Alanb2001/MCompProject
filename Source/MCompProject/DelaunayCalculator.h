@@ -28,20 +28,20 @@ struct TriangleNode
 		return P0 >= 0 && P1 >= 0 && P2 >= 0;
 	}
 
-	TriangleNode(int32 InP0, int32 InP1, int32 InP2)
+	TriangleNode(int32 P0 = -1, int32 P1 = -1, int32 P2 = -1)
+		: P0(P0)
+		, P1(P1)
+		, P2(P2)
+		, C0(-1)
+		, C1(-1)
+		, C2(-1)
+		, A0(-1)
+		, A1(-1)
+		, A2(-1)
 	{
-		P0 = InP0;
-		P1 = InP1;
-		P2 = InP2;
-		C0 = -1;
-		C1 = -1;
-		C2 = -1;
-		A0 = -1;
-		A1 = -1;
-		A2 = -1;
 	}
 
-	bool HasEdge(int e0, int e1)
+	bool HasEdge(int32 e0, int32 e1) const
 	{
 		if (e0 == P0)
 		{
@@ -59,47 +59,56 @@ struct TriangleNode
 		return false;
 	}
 
-	int OtherPoint(int p0, int p1)
+	int32 OtherPoint(int32 p0, int32 p1)
 	{
 		if (p0 == P0)
 		{
-			if (p1 == P1) return P2;
-			if (p1 == P2) return P1;
+			if (p1 == P1)
+				return P2;
+			if (p1 == P2)
+				return P1;
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 		if (p0 == P1)
 		{
-			if (p1 == P0) return P2;
-			if (p1 == P2) return P0;
+			if (p1 == P0)
+				return P2;
+			if (p1 == P2)
+				return P0;
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 		if (p0 == P2)
 		{
-			if (p1 == P0) return P1;
-			if (p1 == P1) return P0;
+			if (p1 == P0)
+				return P1;
+			if (p1 == P1)
+				return P0;
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 
 		throw std::invalid_argument("p0 and p1 not on triangle");
 	}
 
-	int Opposite(int p)
+	int32 Opposite(int32 p)
 	{
-		if (p == P0) return A0;
-		if (p == P1) return A1;
-		if (p == P2) return A2;
+		if (p == P0)
+			return A0;
+		if (p == P1)
+			return A1;
+		if (p == P2)
+			return A2;
 		throw std::invalid_argument("p not in triangle");
 	}
 
-	std::string ToString()
+	FString ToString() const
 	{
 		if (IsLeaf())
 		{
-			return "TriangleNode(" + std::to_string(P0) + ", " + std::to_string(P1) + ", " + std::to_string(P2) + ")";
+			return FString::Printf(TEXT("TriangleNode(%d, %d, %d)"), P0, P1, P2);
 		}
 		else
 		{
-			return "TriangleNode(" + std::to_string(P0) + ", " + std::to_string(P1) + ", " + std::to_string(P2) + ", " + std::to_string(C0) + ", " + std::to_string(C1) + ", " + std::to_string(C2) + ")";
+			return FString::Printf(TEXT("TriangleNode(%d, %d, %d, %d, %d, %d)"), P0, P1, P2, C0, C1, C2);
 		}
 	}
 };
@@ -107,7 +116,7 @@ struct TriangleNode
 class DelaunayCalculator
 {
 public:
-	int highest = -1;
+	int32 highest = -1;
 	TArray<FVector2D> verts;
 
 	TArray<int32> indices;

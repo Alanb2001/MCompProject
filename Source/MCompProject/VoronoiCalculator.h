@@ -7,14 +7,12 @@
 
 struct PointTriangle
 {
-	int32 Point;
-	int32 Triangle;
+	const int Point;
+	const int Triangle;
 
-	PointTriangle(int32 point, int32 triangle)
-	{
-		Point = point;
-		Triangle = triangle;
-	}
+	PointTriangle(int point, int triangle)
+		: Point(point), Triangle(triangle)
+	{}
 
 	FString ToString() const
 	{
@@ -22,7 +20,7 @@ struct PointTriangle
 	}
 };
 
-class PTComparer
+class PTComparer 
 {
 public:
 	std::vector<FVector2D> verts;

@@ -1,23 +1,28 @@
 #include "Geom.h"
 
-bool Geom::AreCoincident(FVector2D a, FVector2D b)
+bool Geom::AreCoincident(const FVector2D& a, const FVector2D& b)
 {
     return (a - b).Size() < 0.000001f;
 }
 
-bool Geom::ToTheLeft(FVector2D p, FVector2D l0, FVector2D l1)
+bool Geom::ToTheLeft(const FVector2D& p, const FVector2D& l0, const FVector2D& l1)
 {
     return ((l1.X - l0.X) * (p.Y - l0.Y) - (l1.Y - l0.Y) * (p.X - l0.X)) >= 0;
 }
 
-bool Geom::PointInTriangle(FVector2D p, FVector2D c0, FVector2D c1, FVector2D c2)
+bool Geom::ToTheRight(const FVector2D& p, const FVector2D& l0, const FVector2D& l1)
+{
+    return !ToTheLeft(p, l0, l1);
+}
+
+bool Geom::PointInTriangle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
 {
     return ToTheLeft(p, c0, c1)
         && ToTheLeft(p, c1, c2)
         && ToTheLeft(p, c2, c0);
 }
 
-bool Geom::InsideCircumcircle(FVector2D p, FVector2D c0, FVector2D c1, FVector2D c2)
+bool Geom::InsideCircumcircle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
 {
     float ax = c0.X - p.X;
     float ay = c0.Y - p.Y;
@@ -26,16 +31,18 @@ bool Geom::InsideCircumcircle(FVector2D p, FVector2D c0, FVector2D c1, FVector2D
     float cx = c2.X - p.X;
     float cy = c2.Y - p.Y;
 
-    return ((ax * ax + ay * ay) * (bx * cy - cx * by) - (bx * bx + by * by) * (ax * cy - cx * ay) +
-        (cx * cx + cy * cy) * (ax * by - bx * ay)) > 0.000001f;
+    float det = (ax * ax + ay * ay) * (bx * cy - cx * by)
+        - (bx * bx + by * by) * (ax * cy - cx * ay)
+        + (cx * cx + cy * cy) * (ax * by - bx * ay);
+
+    return det > 0.000001f;
 }
 
-FVector2D Geom::RotateRightAngle(FVector2D v)
+FVector2D Geom::RotateRightAngle(const FVector2D& v)
 {
     float x = v.X;
-    v.X = -v.Y;
-    v.Y = x;
-    return v;
+    float y = v.Y;
+    return FVector2D(-y, x);
 }
 
 bool Geom::LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVector2D v1, float& m0, float& m1)
@@ -44,9 +51,8 @@ bool Geom::LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVecto
 
     if (FMath::Abs(det) < 0.001f)
     {
-        m0 = std::numeric_limits<float>::quiet_NaN();
-        m1 = std::numeric_limits<float>::quiet_NaN();
-
+        m0 = NAN;
+        m1 = NAN;
         return false;
     }
     else
@@ -70,13 +76,13 @@ FVector2D Geom::LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, F
 {
     float m0, m1;
 
-    if (LineLineIntersection(p0, v0, p1, v1, m0, m1))
+    if (LineLineIntersection(p0, v0, p1, v1, m0, m1)) 
     {
         return p0 + m0 * v0;
     }
-    else
+    else 
     {
-        return FVector2D(NAN, NAN);
+        return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
     }
 }
 
@@ -90,36 +96,31 @@ FVector2D Geom::CircumcircleCenter(FVector2D c0, FVector2D c1, FVector2D c2)
 
     float m0, m1;
 
-    if (Geom::LineLineIntersection(mp0, v0, mp1, v1, m0, m1))
-    {
-        return mp0 + m0 * v0;
-    }
-    else
-    {
-        return FVector2D(NAN, NAN);
-    }
+    LineLineIntersection(mp0, v0, mp1, v1, m0, m1);
+
+    return mp0 + m0 * v0;
 }
 
-FVector2D Geom::TriangleCentroid(FVector2D c0, FVector2D c1, FVector2D c2)
+FVector2D Geom::TriangleCentroid(const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
 {
     FVector2D val = (1.0f / 3.0f) * (c0 + c1 + c2);
     return val;
 }
 
-float Geom::Area(const TArray<FVector2D>& polygon)
+float Geom::Area(const TArray<FVector2D>& Polygon)
 {
-    float area = 0.0f;
-    int count = polygon.Num();
+    float Area = 0.0f;
+    int32 Count = Polygon.Num();
 
-    for (int i = 0; i < count; i++)
+    for (int32 i = 0; i < Count; i++)
     {
-        int j = (i == count - 1) ? 0 : (i + 1);
+        int32 j = (i == Count - 1) ? 0 : (i + 1);
 
-        FVector2D p0 = polygon[i];
-        FVector2D p1 = polygon[j];
+        FVector2D P0 = Polygon[i];
+        FVector2D P1 = Polygon[j];
 
-        area += p0.X * p1.Y - p1.Y * p1.X;
+        Area += P0.X * P1.Y - P1.X * P0.Y;
     }
 
-    return 0.5f * area;
+    return 0.5f * Area;
 }

@@ -19,8 +19,7 @@ void DelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& verts1,
 {
 	if (verts.Num() < 3)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("You need at least 3 points for a triangulation"));
-		return;
+		throw std::invalid_argument("You need at least 3 points for a triangulation");
 	}
 
 	triangles.Empty();
@@ -84,21 +83,21 @@ bool DelaunayCalculator::Higher(int32 pi0, int32 pi1)
 
 void DelaunayCalculator::RunBowyerWatson()
 {
-	for (int i = 0; i < verts.Num(); i++)
+	for (int32 i = 0; i < verts.Num(); i++)
 	{
-		int pi = i;
+		int32 pi = i;
 		if (pi == highest) continue;
 
-		int ti = FindTriangleNode(pi);
+		int32 ti = FindTriangleNode(pi);
 		TriangleNode t = triangles[ti];
 
 		int32 p0 = t.P0;
 		int32 p1 = t.P1;
 		int32 p2 = t.P2;
 
-		int nti0 = triangles.Num();
-		int nti1 = nti0 + 1;
-		int nti2 = nti0 + 2;
+		int32 nti0 = triangles.Num();
+		int32 nti1 = nti0 + 1;
+		int32 nti2 = nti0 + 2;
 
 		TriangleNode nt0(pi, p0, p1);
 		TriangleNode nt1(pi, p1, p2);
@@ -134,14 +133,12 @@ void DelaunayCalculator::RunBowyerWatson()
 
 void DelaunayCalculator::GenerateResult(DelaunayTriangulation& result)
 {
-	if (result.Vertices.Num() > 0)
+	if (&result == nullptr)
 	{
-		result.Vertices.Empty();
+		result = DelaunayTriangulation();
 	}
-	if (result.Triangles.Num() > 0)
-	{
-		result.Triangles.Empty();
-	}
+
+	result.Clear();
 
 	for (int i = 0; i < verts.Num(); i++)
 	{
@@ -152,7 +149,8 @@ void DelaunayCalculator::GenerateResult(DelaunayTriangulation& result)
 	{
 		const TriangleNode& t = triangles[i];
 
-		if (t.IsLeaf() && t.IsInner()) {
+		if (t.IsLeaf() && t.IsInner())
+		{
 			result.Triangles.Add(t.P0);
 			result.Triangles.Add(t.P1);
 			result.Triangles.Add(t.P2);
@@ -277,7 +275,8 @@ void DelaunayCalculator::LegalizeEdge(int32 ti0, int32 ti1, int32 pi, int32 li0,
 	check(t0.P0 == pi || t0.P1 == pi || t0.P2 == pi);
 	check(t1.P0 == qi || t1.P1 == qi || t1.P2 == qi);
 
-	if (!LegalEdge(pi, qi, li0, li1)) {
+	if (!LegalEdge(pi, qi, li0, li1)) 
+	{
 		int32 ti2 = triangles.Num();
 		int ti3 = ti2 + 1;
 

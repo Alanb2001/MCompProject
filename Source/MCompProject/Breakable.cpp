@@ -112,12 +112,12 @@ void ABreakable::Break(FVector2D position)
 
         for (int i = 0; i < 10; i++)
         {
-            float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
+            //float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
             float angle = 2.0f * PI * FMath::FRand();
 
-            sites.Add(position + FVector2D(
-                dist * FMath::Cos(angle),
-                dist * FMath::Sin(angle)));
+            //sites.Add(position + FVector2D(
+            //    dist * FMath::Cos(angle),
+            //    dist * FMath::Sin(angle)));
         }
 
         VoronoiDiagram diagram = calc->CalculateDiagram(sites);
