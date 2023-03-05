@@ -253,6 +253,9 @@
 /I Developer\AnimationDataController\Public
 /I "D:\Unreal Projects\MCompProject\Intermediate\Build\Win64\UnrealEditor\Inc\MCompProject"
 /I "D:\Unreal Projects\MCompProject\Source"
+/I ..\Plugins\Runtime\ProceduralMeshComponent\Intermediate\Build\Win64\UnrealEditor\Inc\ProceduralMeshComponent
+/I ..\Plugins\Runtime\ProceduralMeshComponent\Source
+/I ..\Plugins\Runtime\ProceduralMeshComponent\Source\ProceduralMeshComponent\Public
 /I ThirdParty\mimalloc\include
 /I ThirdParty\LibTiff\Source\Win64
 /I ThirdParty\LibTiff\Source

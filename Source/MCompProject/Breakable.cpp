@@ -7,16 +7,17 @@ ABreakable::ABreakable()
     PrimaryActorTick.bCanEverTick = true;
 
     // Create the cube mesh component
-    CubeMesh = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh");
-    RootComponent = CubeMesh;
+    renderer = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh");
+    RootComponent = renderer;
 
     // Load the cube mesh
     static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
     if (CubeMeshAsset.Succeeded())
     {
-        CubeMesh->SetStaticMesh(CubeMeshAsset.Object);
+        renderer->SetStaticMesh(CubeMeshAsset.Object);
     }
 
+    renderer->SetSimulatePhysics(true);
 }
 
 // Called when the game starts or when spawned
@@ -57,10 +58,7 @@ void ABreakable::Reload()
 {
     FVector pos = GetActorLocation();
 
-    if (filter == nullptr) filter = FindComponentByClass<UStaticMeshComponent>();
     if (renderer == nullptr) renderer = FindComponentByClass<UStaticMeshComponent>();
-    if (collider == nullptr) collider = FindComponentByClass<UStaticMeshComponent>();
-    //if (rigidbody == nullptr) rigidbody = FindComponentByClass<URigidbodyComponent>();
 
     if (polygon.Num() == 0)
     {
@@ -75,11 +73,6 @@ void ABreakable::Reload()
 
         SetActorScale3D(FVector(1.f, 1.f, 1.f));
     }
-
-    //UStaticMesh* mesh = MeshFromPolygon(polygon, thickness);
-
-    //filter->SetStaticMesh(mesh);
-    //collider->SetStaticMesh(mesh);
 }
 
 void ABreakable::OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult)
@@ -92,14 +85,16 @@ void ABreakable::OnCollisionEnter(const FCollisionQueryParams& queryParams, cons
     }
 }
 
-//float ABreakable::NormalizedRandom(float mean, float stddev)
-//{
-//    std::random_device rd{};
-//    std::mt19937 gen{ rd() };
-//    std::normal_distribution<float> d{ mean, stddev };
-//
-//    return d(gen);
-//}
+float ABreakable::NormalizedRandom(float mean, float stddev)
+{
+    float u1 = FMath::FRand();
+    float u2 = FMath::FRand();
+
+    float randStdNormal = FMath::Sqrt(-2.0f * FMath::Loge(u1)) *
+        FMath::Sin(2.0f * PI * u2);
+
+    return mean + stddev * randStdNormal;
+}
 
 void ABreakable::Break(FVector2D position)
 {
@@ -112,12 +107,12 @@ void ABreakable::Break(FVector2D position)
 
         for (int i = 0; i < 10; i++)
         {
-            //float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
+            float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
             float angle = 2.0f * PI * FMath::FRand();
 
-            //sites.Add(position + FVector2D(
-            //    dist * FMath::Cos(angle),
-            //    dist * FMath::Sin(angle)));
+            sites.Add(position + FVector2D(
+                dist * FMath::Cos(angle),
+                dist * FMath::Sin(angle)));
         }
 
         VoronoiDiagram diagram = calc->CalculateDiagram(sites);
@@ -128,23 +123,21 @@ void ABreakable::Break(FVector2D position)
         {
             clip->ClipSite(diagram, polygon, i, clipped);
 
-            //if (clipped.Num() > 0)
-            //{
-            //    AActor* newActor = GetWorld()->SpawnActor<AActor>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
-            //    ABreakable* bs = newActor->FindComponentByClass<ABreakable>();
+            if (clipped.Num() > 0)
+            {
+                ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());;
 
-            //    bs->SetThickness(thickness);
-            //    bs->SetPolygon(clipped);
+                bs->MeshFromPolygon(clipped, thickness);
 
-            //    float childArea = bs->GetArea();
+                float childArea = bs->Area();
 
-            //    UPrimitiveComponent* primitiveComponent = Cast<UPrimitiveComponent>(bs);
-            //    if (primitiveComponent)
-            //    {
-            //        float parentMass = primitiveComponent->GetMass();
-            //        primitiveComponent->SetMass(parentMass * (childArea / area));
-            //    }
-            //}
+                UPrimitiveComponent* primitiveComponent = Cast<UPrimitiveComponent>(bs);
+                if (primitiveComponent)
+                {
+                    float parentMass = primitiveComponent->GetMass();
+                    primitiveComponent->SetMassOverrideInKg(NAME_None, parentMass * (childArea / area));
+                }
+            }
         }
 
         SetActorHiddenInGame(true);
@@ -226,12 +219,6 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon, const
     check(Vi == Verts.Num());
 
     UStaticMesh* Mesh = NewObject<UStaticMesh>();
-    //Mesh->CreateStaticMeshDescription();
-    //Mesh->GetStaticMeshDescription()->SetVertexPositions(Verts);
-    //Mesh->GetStaticMeshDescription()->SetNormals(Norms);
-    //Mesh->GetStaticMeshDescription()->SetTriangles(Tris, false);
-    //Mesh->CommitMeshDescription();
 
     return Mesh;
 }
-

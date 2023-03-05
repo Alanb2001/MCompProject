@@ -88,6 +88,12 @@
     <ClInclude Include="..\..\Source\MCompProject\MCompProjectGameModeBase.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\SimpleCylinderActor.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\SimpleCylinderActor.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\Source\MCompProject\VectorExtensions.cpp">
       <Filter>Source\MCompProject</Filter>
     </ClCompile>

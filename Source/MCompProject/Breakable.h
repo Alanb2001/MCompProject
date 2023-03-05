@@ -8,6 +8,7 @@
 #include <cassert>
 #include <random>
 #include <cmath>
+#include <Components/BoxComponent.h>
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 
@@ -28,11 +29,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UStaticMeshComponent* CubeMesh;
-	UStaticMeshComponent* filter;
 	UStaticMeshComponent* renderer;
-	UStaticMeshComponent* collider;
-	//URigidBodyComponent* rigidbody;
 	TArray<FVector2D> polygon;
 	float thickness = 1.0f;
 	float minBreakArea = 0.01f;
@@ -40,13 +37,14 @@ public:
 	float area = -1.0f;
 	int age;
 
+
 	float Area();
 
 	void Reload();
 
 	void OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult);
 
-	//float NormalizedRandom(float mean, float stddev);
+	float NormalizedRandom(float mean, float stddev);
 
 	void Break(FVector2D position);
 
