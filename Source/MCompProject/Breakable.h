@@ -30,22 +30,25 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UStaticMeshComponent* renderer;
+	UBoxComponent* cube;
 	TArray<FVector2D> polygon;
+	TArray<AActor*> overlappingActors;
+	
 	float thickness = 1.0f;
 	float minBreakArea = 0.01f;
 	float minImpactToBreak = 50.0f;
 	float area = -1.0f;
 	int age;
-
-
+	
 	float Area();
 
 	void Reload();
 
-	void OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult);
-
+	UFUNCTION()
+	void OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult);
+	
 	float NormalizedRandom(float mean, float stddev);
-
+	
 	void Break(FVector2D position);
 
 	UStaticMesh* MeshFromPolygon(const TArray<FVector2D>& Polygon, const float Thickness);

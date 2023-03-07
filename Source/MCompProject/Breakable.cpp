@@ -6,7 +6,7 @@ ABreakable::ABreakable()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    // Create the cube mesh component
+    //// Create the cube mesh component
     renderer = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh");
     RootComponent = renderer;
 
@@ -17,7 +17,14 @@ ABreakable::ABreakable()
         renderer->SetStaticMesh(CubeMeshAsset.Object);
     }
 
+    cube = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+    cube->SetBoxExtent(FVector(120.0f, 120.0f, 120.0f));
+    cube->SetCollisionProfileName("Trigger");
+    cube->SetupAttachment(RootComponent);
+    
     renderer->SetSimulatePhysics(true);
+
+    cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called when the game starts or when spawned
@@ -59,7 +66,8 @@ void ABreakable::Reload()
     FVector pos = GetActorLocation();
 
     if (renderer == nullptr) renderer = FindComponentByClass<UStaticMeshComponent>();
-
+    if (cube == nullptr) cube = FindComponentByClass<UBoxComponent>();
+    
     if (polygon.Num() == 0)
     {
         FVector scale = 0.5f * GetActorScale3D();
@@ -71,17 +79,18 @@ void ABreakable::Reload()
 
         thickness = 2.0f * scale.Z;
 
-        SetActorScale3D(FVector(1.f, 1.f, 1.f));
+        SetActorScale3D(FVector(1.0f, 1.0f, 1.0f));
     }
 }
 
-void ABreakable::OnCollisionEnter(const FCollisionQueryParams& queryParams, const FHitResult& hitResult)
+void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
 {
-    if (age > 5 && hitResult.ImpactPoint.Size() > minImpactToBreak)
+    if (age > 5 && OtherComp->GetPhysicsLinearVelocity().Size() > minImpactToBreak)
     {
-        FVector pnt = hitResult.ImpactPoint;
-        FVector localPnt = GetTransform().InverseTransformPosition(pnt);
-        Break(FVector2D(localPnt.X, localPnt.Y));
+        FVector pnt = SweepResult.ImpactPoint;
+        FVector LocalPnt = HitComp->GetComponentTransform().InverseTransformPosition(pnt);
+        Break(FVector2D(LocalPnt.X, LocalPnt.Y));
+        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "OnComponentHit Function called");
     }
 }
 
@@ -98,12 +107,16 @@ float ABreakable::NormalizedRandom(float mean, float stddev)
 
 void ABreakable::Break(FVector2D position)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "plz");
+    
     if (area > minBreakArea)
     {
         VoronoiCalculator* calc = new VoronoiCalculator();
-        VoronoiClipper* clip = new VoronoiClipper();
+        VoronoiClipper* clip =  new VoronoiClipper();
 
         TArray<FVector2D> sites;
+
+        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "Maybe");
 
         for (int i = 0; i < 10; i++)
         {
@@ -113,6 +126,8 @@ void ABreakable::Break(FVector2D position)
             sites.Add(position + FVector2D(
                 dist * FMath::Cos(angle),
                 dist * FMath::Sin(angle)));
+            
+            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "No");
         }
 
         VoronoiDiagram diagram = calc->CalculateDiagram(sites);
@@ -127,7 +142,9 @@ void ABreakable::Break(FVector2D position)
             {
                 ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());;
 
-                bs->MeshFromPolygon(clipped, thickness);
+                bs->thickness = thickness;
+                bs->polygon.Empty();
+                bs->polygon.Append(clipped);
 
                 float childArea = bs->Area();
 
@@ -136,6 +153,8 @@ void ABreakable::Break(FVector2D position)
                 {
                     float parentMass = primitiveComponent->GetMass();
                     primitiveComponent->SetMassOverrideInKg(NAME_None, parentMass * (childArea / area));
+
+                    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "Yes");
                 }
             }
         }
