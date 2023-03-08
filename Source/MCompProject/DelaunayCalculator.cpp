@@ -17,17 +17,17 @@ DelaunayTriangulation DelaunayCalculator::CalculateTriangulation(const TArray<FV
 
 void DelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& verts1, DelaunayTriangulation& result)
 {
-	if (verts.Num() < 3)
+	if (verts1.Num() < 3)
 	{
 		throw std::invalid_argument("You need at least 3 points for a triangulation");
 	}
 
 	triangles.Empty();
-	this->verts = verts;
+	this->verts = verts1;
 
 	highest = 0;
 
-	for (int i = 0; i < verts.Num(); i++)
+	for (int i = 0; i < verts1.Num(); i++)
 	{
 		if (Higher(highest, i))
 		{

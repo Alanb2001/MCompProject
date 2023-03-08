@@ -23,8 +23,8 @@ struct PointTriangle
 class PTComparer 
 {
 public:
-	std::vector<FVector2D> verts;
-	std::vector<int32> tris;
+	TArray<FVector2D> verts;
+	TArray<int32> tris;
 
 	int32 Compare(const PointTriangle& pt0, const PointTriangle& pt1) const
 	{
@@ -100,7 +100,7 @@ public:
 
 	VoronoiDiagram CalculateDiagram(const TArray<FVector2D>& inputVertices);
 
-	void CalculateDiagram(const TArray<FVector2D>& inputVertices, VoronoiDiagram& result);
+	void CalculateDiagram(const TArray<FVector2D>& inputVertices, VoronoiDiagram* result);
 
 	static int32 NonSharedPoint(const TArray<int32>& tris, int32 ti0, int32 ti1);
 

@@ -109,7 +109,7 @@ void ABreakable::Break(FVector2D position)
 {
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "plz");
     
-    if (area > minBreakArea)
+    if (Area() > minBreakArea)
     {
         VoronoiCalculator* calc = new VoronoiCalculator();
         VoronoiClipper* clip =  new VoronoiClipper();
@@ -140,7 +140,7 @@ void ABreakable::Break(FVector2D position)
 
             if (clipped.Num() > 0)
             {
-                ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());;
+                ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
 
                 bs->thickness = thickness;
                 bs->polygon.Empty();

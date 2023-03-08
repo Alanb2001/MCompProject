@@ -1,6 +1,6 @@
 #include "VoronoiClipper.h"
 
-void VoronoiClipper::ClipSite(VoronoiDiagram diag, TArray<FVector2D> polygon, int site, TArray<FVector2D>& clipped)
+void VoronoiClipper::ClipSite(VoronoiDiagram& diag, TArray<FVector2D>& polygon, int site, TArray<FVector2D>& clipped)
 {
     pointsIn.Empty();
     pointsIn.Append(polygon);
@@ -99,11 +99,12 @@ void VoronoiClipper::ClipSite(VoronoiDiagram diag, TArray<FVector2D> polygon, in
 
     if (clipped.Num() == 0)
     {
-        clipped = pointsIn;
+        clipped = TArray<FVector2D>();
     }
     else
     {
         clipped.Empty();
-        clipped.Append(pointsIn);
     }
+
+    clipped.Append(pointsIn);
 }

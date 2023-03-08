@@ -10,25 +10,25 @@ VoronoiCalculator::VoronoiCalculator()
 VoronoiDiagram VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices)
 {
 	VoronoiDiagram result;
-	CalculateDiagram(inputVertices, result);
+	CalculateDiagram(inputVertices, &result);
 	return result;
 }
 
-void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices, VoronoiDiagram& result)
+void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices, VoronoiDiagram* result)
 {
 	if (inputVertices.Num() < 3)
 	{
 		throw std::runtime_error("Not implemented for < 3 vertices");
 	}
 
-	if (result.Vertices.Num() > 0 || result.Edges.Num() > 0 || result.Triangulation.Vertices.Num() > 0 || result.Triangulation.Triangles.Num() > 0)
+	if (result == nullptr)
 	{
-		result.Clear();
+		result = new VoronoiDiagram();
 	}
+	
+	DelaunayTriangulation trig = result->Triangulation;
 
-	DelaunayTriangulation trig = result.Triangulation;
-
-	result.Clear();
+	result->Clear();
 
 	delCalc.CalculateTriangulation(inputVertices, trig);
 
@@ -36,15 +36,21 @@ void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices,
 
 	auto& verts = trig.Vertices;
 	auto& tris = trig.Triangles;
-	auto& centers = result.Vertices;
-	auto& edges = result.Edges;
+	auto& centers = result->Vertices;
+	auto& edges = result->Edges;
 
 	pts.Reserve(tris.Num());
 	edges.Reserve(tris.Num());
 
-	//if (tris.Num() > pts.Capacity) { pts.Capacity = tris.Num(); }
-	//if (tris.Num() > edges.Capacity) { edges.Capacity = tris.Num(); }
-
+	if (tris.Num() > pts.Max())
+	{
+		pts.SetNumUninitialized(tris.Num());
+	}
+	if (tris.Num() > edges.Max())
+	{
+		edges.SetNumUninitialized(tris.Num());
+	}
+	
 	for (int ti = 0; ti < tris.Num(); ti += 3)
 	{
 		auto p0 = verts[tris[ti]];
@@ -62,18 +68,18 @@ void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices,
 		pts.Add(PointTriangle(tris[ti + 1], ti));
 		pts.Add(PointTriangle(tris[ti + 2], ti));
 	}
-
-	//cmp.tris = &tris;
-	//cmp.verts = &verts;
-
+	
+	cmp.tris = tris;
+	cmp.verts = verts;
+	
 	//pts.Sort(cmp);
-
-	//cmp.tris.empty();
-	//cmp.verts.empty();
+	
+	cmp.tris.Empty();
+	cmp.verts.Empty();
 
 	for (int i = 0; i < pts.Num(); i++)
 	{
-		result.FirstEdgeBySite.Add(edges.Num());
+		result->FirstEdgeBySite.Add(edges.Num());
 
 		auto start = i;
 		auto end = -1;
