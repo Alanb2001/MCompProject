@@ -8,7 +8,10 @@
 #include <cassert>
 #include <random>
 #include <cmath>
+#include "ProceduralMeshComponent.h"
+#include "MeshDescription.h"
 #include <Components/BoxComponent.h>
+#include "StaticMeshAttributes.h"
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 
@@ -31,6 +34,7 @@ public:
 
 	UStaticMeshComponent* renderer;
 	UBoxComponent* cube;
+	//URigidBodyComponent* Rigidbody;
 	TArray<FVector2D> polygon;
 	TArray<AActor*> overlappingActors;
 	

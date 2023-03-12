@@ -73,6 +73,12 @@
     <ClInclude Include="..\..\Source\MCompProject\Geom.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\GridMeshDescription.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\GridMeshDescription.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
     <None Include="..\..\Source\MCompProject\MCompProject.Build.cs">
       <Filter>Source\MCompProject</Filter>
     </None>

@@ -18,7 +18,7 @@ ABreakable::ABreakable()
     }
 
     cube = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-    cube->SetBoxExtent(FVector(120.0f, 120.0f, 120.0f));
+    cube->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
     cube->SetCollisionProfileName("Trigger");
     cube->SetupAttachment(RootComponent);
     
@@ -90,7 +90,6 @@ void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, U
         FVector pnt = SweepResult.ImpactPoint;
         FVector LocalPnt = HitComp->GetComponentTransform().InverseTransformPosition(pnt);
         Break(FVector2D(LocalPnt.X, LocalPnt.Y));
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "OnComponentHit Function called");
     }
 }
 
@@ -107,54 +106,50 @@ float ABreakable::NormalizedRandom(float mean, float stddev)
 
 void ABreakable::Break(FVector2D position)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "plz");
-    
     if (Area() > minBreakArea)
     {
         VoronoiCalculator* calc = new VoronoiCalculator();
         VoronoiClipper* clip =  new VoronoiClipper();
 
-        TArray<FVector2D> sites;
-
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "Maybe");
+        TArray<FVector2D> sites = TArray<FVector2D>();
 
         for (int i = 0; i < 10; i++)
         {
             float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
             float angle = 2.0f * PI * FMath::FRand();
 
-            sites.Add(position + FVector2D(
+            FVector2D site = position + FVector2D(
                 dist * FMath::Cos(angle),
-                dist * FMath::Sin(angle)));
-            
-            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "No");
+                dist * FMath::Sin(angle));
+
+            sites.Add(site);
         }
 
         VoronoiDiagram diagram = calc->CalculateDiagram(sites);
 
-        TArray<FVector2D> clipped;
+        TArray<FVector2D> clipped = TArray<FVector2D>();
 
         for (int i = 0; i < sites.Num(); i++)
         {
             clip->ClipSite(diagram, polygon, i, clipped);
-
+            
             if (clipped.Num() > 0)
             {
                 ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
 
+                bs->SetActorScale3D(GetActorScale3D());
+                
                 bs->thickness = thickness;
                 bs->polygon.Empty();
                 bs->polygon.Append(clipped);
 
                 float childArea = bs->Area();
-
-                UPrimitiveComponent* primitiveComponent = Cast<UPrimitiveComponent>(bs);
+                
+                UPrimitiveComponent* primitiveComponent = Cast<UPrimitiveComponent>(bs->GetComponentByClass(UPrimitiveComponent::StaticClass()));
                 if (primitiveComponent)
                 {
                     float parentMass = primitiveComponent->GetMass();
-                    primitiveComponent->SetMassOverrideInKg(NAME_None, parentMass * (childArea / area));
-
-                    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, "Yes");
+                    primitiveComponent->SetMassScale(NAME_None, parentMass * (childArea / area));
                 }
             }
         }
