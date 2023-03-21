@@ -6,7 +6,7 @@ ABreakable::ABreakable()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    //// Create the cube mesh component
+    // Create the cube mesh component
     renderer = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh");
     RootComponent = renderer;
 
@@ -16,7 +16,27 @@ ABreakable::ABreakable()
     {
         renderer->SetStaticMesh(CubeMeshAsset.Object);
     }
+	
+	//renderer->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // Enable collision
+	//renderer->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic); // Set collision object type
+	//renderer->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block); // Set collision response
+	//renderer->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore); // Set collision response for specific channel
 
+	//StaticMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube"));
+	//if (StaticMesh)
+	//{
+	//	renderer = NewObject<UStaticMeshComponent>(GetTransientPackage(), NAME_None);
+	//	renderer->SetStaticMesh(StaticMesh);
+	//	renderer->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//	renderer->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	//	renderer->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
+	//	renderer->SetSimulatePhysics(false);
+	//	renderer->SetRelativeLocation(FVector::ZeroVector);
+	//	renderer->SetRelativeRotation(FRotator::ZeroRotator);
+	//	renderer->SetRelativeScale3D(FVector::OneVector);
+	//	renderer->RegisterComponent();
+	//}
+	
     cube = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
     cube->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
     cube->SetCollisionProfileName("Trigger");
@@ -63,8 +83,6 @@ float ABreakable::Area()
 
 void ABreakable::Reload()
 {
-    FVector pos = GetActorLocation();
-
     if (renderer == nullptr) renderer = FindComponentByClass<UStaticMeshComponent>();
     if (cube == nullptr) cube = FindComponentByClass<UBoxComponent>();
     
@@ -81,6 +99,11 @@ void ABreakable::Reload()
 
         SetActorScale3D(FVector(1.0f, 1.0f, 1.0f));
     }
+    
+    UStaticMesh* mesh = MeshFromPolygon(polygon, thickness);
+
+    renderer->SetStaticMesh(mesh);
+    cube->SetBoxExtent(mesh->GetBoundingBox().GetExtent());
 }
 
 void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
@@ -106,133 +129,320 @@ float ABreakable::NormalizedRandom(float mean, float stddev)
 
 void ABreakable::Break(FVector2D position)
 {
-    if (Area() > minBreakArea)
-    {
-        VoronoiCalculator* calc = new VoronoiCalculator();
-        VoronoiClipper* clip =  new VoronoiClipper();
-
-        TArray<FVector2D> sites = TArray<FVector2D>();
-
-        for (int i = 0; i < 10; i++)
-        {
-            float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
-            float angle = 2.0f * PI * FMath::FRand();
-
-            FVector2D site = position + FVector2D(
-                dist * FMath::Cos(angle),
-                dist * FMath::Sin(angle));
-
-            sites.Add(site);
-        }
-
-        VoronoiDiagram diagram = calc->CalculateDiagram(sites);
-
-        TArray<FVector2D> clipped = TArray<FVector2D>();
-
-        for (int i = 0; i < sites.Num(); i++)
-        {
-            clip->ClipSite(diagram, polygon, i, clipped);
-            
-            if (clipped.Num() > 0)
-            {
-                ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
-
-                bs->SetActorScale3D(GetActorScale3D());
-                
-                bs->thickness = thickness;
-                bs->polygon.Empty();
-                bs->polygon.Append(clipped);
-
-                float childArea = bs->Area();
-                
-                UPrimitiveComponent* primitiveComponent = Cast<UPrimitiveComponent>(bs->GetComponentByClass(UPrimitiveComponent::StaticClass()));
-                if (primitiveComponent)
-                {
-                    float parentMass = primitiveComponent->GetMass();
-                    primitiveComponent->SetMassScale(NAME_None, parentMass * (childArea / area));
-                }
-            }
-        }
-
-        SetActorHiddenInGame(true);
-        Destroy();
-    }
+  if (Area() > minBreakArea)
+     {
+         VoronoiCalculator* calc = new VoronoiCalculator();
+         VoronoiClipper* clip =  new VoronoiClipper();
+ 
+         TArray<FVector2D> sites;
+  		 sites.SetNum(10);
+ 
+         for (int i = 0; i < sites.Num(); i++)
+         {
+             float dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
+             float angle = 2.0f * PI * FMath::FRand();
+ 
+             sites[i] = position + FVector2D(
+                 dist * FMath::Cos(angle),
+                 dist * FMath::Sin(angle));
+         }
+ 
+         VoronoiDiagram diagram = calc->CalculateDiagram(sites);
+ 
+         TArray<FVector2D> clipped = TArray<FVector2D>();
+ 
+         for (int i = 0; i < sites.Num(); i++)
+         {
+             clip->ClipSite(diagram, polygon, i, clipped);
+             
+             if (clipped.Num() > 0)
+             {
+                 ABreakable* bs = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
+ 
+                 bs->SetActorScale3D(GetActorScale3D());
+                 
+                 bs->thickness = thickness;
+                 bs->polygon.Empty();
+                 bs->polygon.Append(clipped);
+ 
+                 float childArea = bs->Area();
+                 
+             	UPrimitiveComponent* pc = Cast<UPrimitiveComponent>(bs);
+             	if (pc != nullptr)
+             	{
+             		FBodyInstance* bodyInstance = pc->GetBodyInstance();
+             		if (bodyInstance != nullptr)
+             		{
+             			FBodyInstance* parentBodyInstance = pc->GetBodyInstance();
+             			if (parentBodyInstance != nullptr)
+             			{
+             				float mass = parentBodyInstance->GetBodyMass();
+             				bodyInstance->SetMassScale(parentBodyInstance->GetMassOverride());
+             				bodyInstance->SetMassOverride(mass * (childArea / area));
+             			}
+             		}
+             	}
+             }
+         }
+ 
+         SetActorHiddenInGame(true);
+         Destroy();
+     }
 }
 
 UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon, const float Thickness)
 {
-    int32 Count = Polygon.Num();
-    TArray<FVector> Verts;
-    TArray<FVector> Norms;
-    TArray<int32> Tris;
-    int32 Vi = 0;
-    int32 Ni = 0;
-    int32 Ti = 0;
-    float Ext = 0.5f * Thickness;
+	FMeshDescription meshDesc;
+	FStaticMeshAttributes Attributes(meshDesc);
+	Attributes.Register();
+	
+	FMeshDescriptionBuilder meshDescBuilder;
+	meshDescBuilder.SetMeshDescription( &meshDesc );
+	meshDescBuilder.EnablePolyGroups();
+	meshDescBuilder.SetNumUVLayers(1);
+	
+	TArray< FVertexID > vertexIDs; vertexIDs.SetNum(3);
+	TArray< FVertexInstanceID > vertexInsts;
+	FVertexInstanceID instance;
+	FPolygonGroupID polygonGroup = meshDescBuilder.AppendPolygonGroup();
+	
+	int32 count = Polygon.Num();
+	
+	TArray<FVector> verts;
+	TArray<FVector> norms;
+	TArray<int32> tris;
+	
+	verts.Init(FVector(0, 0, 0), 6 * count);
+	norms.Init(FVector(0, 0, 0), 6 * count);
+	tris.Init(0, 3 * (4 * count - 4));
+	
+	int32 vi = 0;
+	int32 ni = 0;
+	int32 ti = 0;
+	
+	float ext = 0.5f * Thickness;
+	
+	// Top
+	for (int32 i = 0; i < count; i++)
+	{
+	    verts[vi++] = FVector(Polygon[i].X, Polygon[i].Y, ext);
+	    //vertexIDs[0] = meshDescBuilder.AppendVertex(FVector(Polygon[i].X, Polygon[i].Y, ext));
+	    //instance = meshDescBuilder.AppendInstance(vertexIDs[0]);
+	    norms[ni++] = FVector(0, 0, 1);
+	    //meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	    //meshDescBuilder.SetInstanceNormal(instance, FVector(0, 0, 1));
+	    //vertexInsts.Add(instance);
+	}
+	
+	// Bottom
+	for (int32 i = 0; i < count; i++)
+	{
+	    verts[vi++] = FVector(Polygon[i].X, Polygon[i].Y, -ext);
+	    //vertexIDs[1] = meshDescBuilder.AppendVertex(FVector(Polygon[i].X, Polygon[i].Y, -ext));
+	    //instance = meshDescBuilder.AppendInstance(vertexIDs[1]);
+	    norms[ni++] = FVector(0, 0, -1);
+	    //meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	    //meshDescBuilder.SetInstanceNormal(instance, FVector(0, 0, -1));
+	    //vertexInsts.Add(instance);
+	}
+	
+	// Sides
+	for (int32 i = 0; i < count; i++)
+	{
+	    int32 iNext = i == count - 1 ? 0 : i + 1;
+	    
+	    verts[vi++] = FVector(Polygon[i].X, Polygon[i].Y, ext);
+	    verts[vi++] = FVector(Polygon[i].X, Polygon[i].Y, -ext);
+	    verts[vi++] = FVector(Polygon[iNext].X, Polygon[iNext].Y, -ext);
+	    verts[vi++] = FVector(Polygon[iNext].X, Polygon[iNext].Y, ext);
+	
+	    //vertexIDs[2] = meshDescBuilder.AppendVertex(FVector(Polygon[i].X, Polygon[i].Y, ext));
+	    //instance = meshDescBuilder.AppendInstance(vertexIDs[2]);
+	    
+	    FVector norm = FVector::CrossProduct(FVector(Polygon[iNext].X - Polygon[i].X, Polygon[iNext].Y - Polygon[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
+	
+	    norms[ni++] = norm;
+	    norms[ni++] = norm;
+	    norms[ni++] = norm;
+	    norms[ni++] = norm;
+	    //meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	    //meshDescBuilder.SetInstanceNormal(instance, norm);
+	    //vertexInsts.Add(instance);
+	}
+	
+	for (int32 vert = 2; vert < count; vert++)
+	{
+	    tris[ti++] = 0;
+	    tris[ti++] = vert - 1;
+	    tris[ti++] = vert;
+	    //meshDescBuilder.AppendTriangle(vertexIDs[0], vertexIDs[1], vertexIDs[2], polygonGroup);
+	}
+	
+	for (int32 vert = 2; vert < count; vert++)
+	{
+	    tris[ti++] = count;
+	    tris[ti++] = count + vert;
+	    tris[ti++] = count + vert - 1;
+	    //meshDescBuilder.AppendTriangle(vertexIDs[2], vertexIDs[1], vertexIDs[0], polygonGroup);
+	}
+	
+	for (int32 vert = 0; vert < count; vert++)
+	{
+	    int32 si = 2 * count + 4 * vert;
+	
+	    tris[ti++] = si;
+	    tris[ti++] = si + 1;
+	    tris[ti++] = si + 2;
+	    //meshDescBuilder.AppendTriangle(vertexIDs[1], vertexIDs[2], vertexIDs[0], polygonGroup);
+	    
+	    tris[ti++] = si;
+	    tris[ti++] = si + 2;
+	    tris[ti++] = si + 3;
+	    //meshDescBuilder.AppendTriangle(vertexIDs[0], vertexIDs[1], vertexIDs[2], polygonGroup);
+	}
+	
+	check(ti == tris.Num());
+	check(vi == verts.Num());
+	check(ni == norms.Num());
+	
+	UStaticMesh* staticMesh = NewObject<UStaticMesh>(this);
 
-    // Top
-    for (int32 i = 0; i < Count; i++)
-    {
-        Verts.Add(FVector(Polygon[i].X, Polygon[i].Y, Ext));
-        Norms.Add(FVector(0.f, 0.f, 1.f));
-    }
+	staticMesh->GetStaticMaterials().Add(FStaticMaterial());
+	
+	UStaticMesh::FBuildMeshDescriptionsParams mdParams;
+	mdParams.bBuildSimpleCollision = true;
+	mdParams.bFastBuild = true;
+	
+	// Build static mesh
+	TArray<const FMeshDescription*> meshDescPtrs;
+	meshDescPtrs.Emplace(&meshDesc);
+	staticMesh->BuildFromMeshDescriptions(meshDescPtrs, mdParams);
+	
+	return staticMesh;
 
-    // Bottom
-    for (int32 i = 0; i < Count; i++)
-    {
-        Verts.Add(FVector(Polygon[i].X, Polygon[i].Y, -Ext));
-        Norms.Add(FVector(0.f, 0.f, -1.f));
-    }
-
-    // Sides
-    for (int32 i = 0; i < Count; i++)
-    {
-        int32 iNext = i == Count - 1 ? 0 : i + 1;
-
-        Verts.Add(FVector(Polygon[i].X, Polygon[i].Y, Ext));
-        Verts.Add(FVector(Polygon[i].X, Polygon[i].Y, -Ext));
-        Verts.Add(FVector(Polygon[iNext].X, Polygon[iNext].Y, -Ext));
-        Verts.Add(FVector(Polygon[iNext].X, Polygon[iNext].Y, Ext));
-
-        FVector Norm = FVector::CrossProduct(FVector(Polygon[iNext] - Polygon[i], 0.f), FVector(0.f, 0.f, 1.f)).GetSafeNormal();
-
-        Norms.Add(Norm);
-        Norms.Add(Norm);
-        Norms.Add(Norm);
-        Norms.Add(Norm);
-    }
-
-    for (int32 Vert = 2; Vert < Count; Vert++)
-    {
-        Tris.Add(0);
-        Tris.Add(Vert - 1);
-        Tris.Add(Vert);
-    }
-
-    for (int32 Vert = 2; Vert < Count; Vert++)
-    {
-        Tris.Add(Count);
-        Tris.Add(Count + Vert);
-        Tris.Add(Count + Vert - 1);
-    }
-
-    for (int32 Vert = 0; Vert < Count; Vert++)
-    {
-        int32 Si = 2 * Count + 4 * Vert;
-
-        Tris.Add(Si);
-        Tris.Add(Si + 1);
-        Tris.Add(Si + 2);
-
-        Tris.Add(Si);
-        Tris.Add(Si + 2);
-        Tris.Add(Si + 3);
-    }
-
-    check(Ti == Tris.Num());
-    check(Vi == Verts.Num());
-
-    UStaticMesh* Mesh = NewObject<UStaticMesh>();
-
-    return Mesh;
+   // Build a simple pyramid after play has begun
+	// Mesh description will hold all the geometry, uv, normals going into the static mesh
+	//FMeshDescription meshDesc;
+	//FStaticMeshAttributes Attributes(meshDesc);
+	//Attributes.Register();
+//
+	//FMeshDescriptionBuilder meshDescBuilder;
+	//meshDescBuilder.SetMeshDescription( &meshDesc );
+	//meshDescBuilder.EnablePolyGroups();
+	//meshDescBuilder.SetNumUVLayers(1);
+//
+	//// Create the 5 vertices needed for the shape
+	//TArray< FVertexID > vertexIDs; vertexIDs.SetNum(5);
+	//vertexIDs[0] = meshDescBuilder.AppendVertex(FVector(  0.0,   0.0, 100.0)); // Apex
+	//vertexIDs[1] = meshDescBuilder.AppendVertex(FVector(-50.0,  50.0,   0.0)); // Corner 1
+	//vertexIDs[2] = meshDescBuilder.AppendVertex(FVector(-50.0, -50.0,   0.0)); // Corner 2
+	//vertexIDs[3] = meshDescBuilder.AppendVertex(FVector( 50.0, -50.0,   0.0)); // Corner 3
+	//vertexIDs[4] = meshDescBuilder.AppendVertex(FVector( 50.0,  50.0,   0.0)); // Corner 4
+	//
+	//// Array to store all the vertex instances (3 per face)
+	//TArray< FVertexInstanceID > vertexInsts;
+	//
+	//// Face 1 (Faces towards -X) vertex instances
+	//FVertexInstanceID instance = meshDescBuilder.AppendInstance(vertexIDs[0]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(-0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 1), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[1]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(-0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[2]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(-0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(1, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//// Face 2 (Faces -Y) vertex instances
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[0]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, -0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 1), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[2]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, -0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[3]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, -0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(1, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//// Face 3 (Faces towards +X) vertex instances
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[0]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 1), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[3]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[4]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0.7071, 0, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(1, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//// Face 4 (Faces +Y) vertex instances
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[0]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, 0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0.0, 1.0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[4]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, 0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(0, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//instance = meshDescBuilder.AppendInstance(vertexIDs[1]);
+	//meshDescBuilder.SetInstanceNormal(instance, FVector(0, 0.7071, 0.7071));
+	//meshDescBuilder.SetInstanceUV(instance, FVector2D(1, 0), 0);
+	//meshDescBuilder.SetInstanceColor(instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//vertexInsts.Add(instance);
+	//
+	//// Allocate a polygon group
+	//FPolygonGroupID polygonGroup = meshDescBuilder.AppendPolygonGroup();
+	//
+	//// Add triangles to mesh description
+	//// Face 1 Triangle
+	//meshDescBuilder.AppendTriangle(vertexInsts[2], vertexInsts[1], vertexInsts[0], polygonGroup);
+	//// Face 2 Triangle
+	//meshDescBuilder.AppendTriangle(vertexInsts[5], vertexInsts[4], vertexInsts[3], polygonGroup);
+	//// Face 3 Triangle
+	//meshDescBuilder.AppendTriangle(vertexInsts[8], vertexInsts[7], vertexInsts[6], polygonGroup);
+	//// Face 4 Triangle
+	//meshDescBuilder.AppendTriangle(vertexInsts[11], vertexInsts[10], vertexInsts[9], polygonGroup);
+	//
+	//// At least one material must be added
+	//UStaticMesh* staticMesh = NewObject<UStaticMesh>(this);
+	//staticMesh->GetStaticMaterials().Add(FStaticMaterial());
+	//
+	//UStaticMesh::FBuildMeshDescriptionsParams mdParams;
+	//mdParams.bBuildSimpleCollision = true;
+	//mdParams.bFastBuild = true;
+	//
+	//// Build static mesh
+	//TArray<const FMeshDescription*> meshDescPtrs;
+	//meshDescPtrs.Emplace(&meshDesc);
+	//staticMesh->BuildFromMeshDescriptions(meshDescPtrs, mdParams);
+//
+	//return staticMesh;
 }

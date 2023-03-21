@@ -12,6 +12,20 @@
 #include "MeshDescription.h"
 #include <Components/BoxComponent.h>
 #include "StaticMeshAttributes.h"
+#include "ProceduralMeshConversion.h"
+#include "StaticMeshDescription.h"
+#include "Components/StaticMeshComponent.h"
+#include "Rendering/PositionVertexBuffer.h"
+#include "Engine/StaticMesh.h"
+#include "StaticMeshResources.h"
+#include "UObject/ConstructorHelpers.h"
+#include "DrawDebugHelpers.h"
+#include "Components/StaticMeshComponent.h"
+#include "Rendering/PositionVertexBuffer.h"
+#include "Engine/StaticMesh.h"
+#include "StaticMeshResources.h"
+#include "MeshDescriptionBuilder.h"
+#include "AbcImporter.h"
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 
@@ -33,8 +47,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UStaticMeshComponent* renderer;
+	UStaticMesh* StaticMesh;
 	UBoxComponent* cube;
-	//URigidBodyComponent* Rigidbody;
 	TArray<FVector2D> polygon;
 	TArray<AActor*> overlappingActors;
 	

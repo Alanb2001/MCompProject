@@ -8,7 +8,7 @@ public class MCompProject : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent", "MeshDescription", "StaticMeshDescription" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent", "MeshDescription", "StaticMeshDescription", "MeshConversion", "AlembicLibrary" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
