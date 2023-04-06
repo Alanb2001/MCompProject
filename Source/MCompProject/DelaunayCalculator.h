@@ -2,21 +2,20 @@
 
 #include "CoreMinimal.h"
 #include "DelaunayTriangulation.h"
-#include <string>
 
-struct TriangleNode
+struct FTriangleNode
 {
-	int32 P0;
-	int32 P1;
-	int32 P2;
+	int P0;
+	int P1;
+	int P2;
 
-	int32 C0;
-	int32 C1;
-	int32 C2;
+	int C0;
+	int C1;
+	int C2;
 
-	int32 A0;
-	int32 A1;
-	int32 A2;
+	int A0;
+	int A1;
+	int A2;
 
 	bool IsLeaf() const
 	{
@@ -28,7 +27,7 @@ struct TriangleNode
 		return P0 >= 0 && P1 >= 0 && P2 >= 0;
 	}
 
-	TriangleNode(int32 P0 = -1, int32 P1 = -1, int32 P2 = -1)
+	FTriangleNode(const int P0, const int P1, const int P2)
 		: P0(P0)
 		, P1(P1)
 		, P2(P2)
@@ -41,62 +40,81 @@ struct TriangleNode
 	{
 	}
 
-	bool HasEdge(int32 e0, int32 e1) const
+	bool HasEdge(const int E0, const int E1) const
 	{
-		if (e0 == P0)
+		if (E0 == P0)
 		{
-			return e1 == P1 || e1 == P2;
+			return E1 == P1 || E1 == P2;
 		}
-		else if (e0 == P1)
+		if (E0 == P1)
 		{
-			return e1 == P0 || e1 == P2;
+			return E1 == P0 || E1 == P2;
 		}
-		else if (e0 == P2)
+		if (E0 == P2)
 		{
-			return e1 == P0 || e1 == P1;
+			return E1 == P0 || E1 == P1;
 		}
 
 		return false;
 	}
 
-	int32 OtherPoint(int32 p0, int32 p1)
+	int OtherPoint(const int P0P, const int P1P) const
 	{
-		if (p0 == P0)
+		if (P0P == P0)
 		{
-			if (p1 == P1)
+			if (P1P == P1)
+			{
 				return P2;
-			if (p1 == P2)
+			}
+			if (P1P == P2)
+			{
 				return P1;
+			}
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
-		if (p0 == P1)
+		if (P0P == P1)
 		{
-			if (p1 == P0)
+			if (P1P == P0)
+			{
 				return P2;
-			if (p1 == P2)
+			}
+			if (P1P == P2)
+			{
 				return P0;
+			}
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
-		if (p0 == P2)
+		if (P0P == P2)
 		{
-			if (p1 == P0)
+			if (P1P == P0)
+			{
 				return P1;
-			if (p1 == P1)
+			}
+			if (P1P == P1)
+			{
 				return P0;
+			}
+
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 
 		throw std::invalid_argument("p0 and p1 not on triangle");
 	}
 
-	int32 Opposite(int32 p)
+	int Opposite(const int P) const
 	{
-		if (p == P0)
+		if (P == P0)
+		{
 			return A0;
-		if (p == P1)
+		}
+		if (P == P1)
+		{
 			return A1;
-		if (p == P2)
+		}
+		if (P == P2)
+		{
 			return A2;
+		}
 		throw std::invalid_argument("p not in triangle");
 	}
 
@@ -106,45 +124,42 @@ struct TriangleNode
 		{
 			return FString::Printf(TEXT("TriangleNode(%d, %d, %d)"), P0, P1, P2);
 		}
-		else
-		{
-			return FString::Printf(TEXT("TriangleNode(%d, %d, %d, %d, %d, %d)"), P0, P1, P2, C0, C1, C2);
-		}
+		return FString::Printf(TEXT("TriangleNode(%d, %d, %d, %d, %d, %d)"), P0, P1, P2, C0, C1, C2);
 	}
 };
 
-class DelaunayCalculator
+class FDelaunayCalculator
 {
 public:
-	int32 highest = -1;
-	TArray<FVector2D> verts;
+	int Highest = -1;
+	TArray<FVector2D> Verts;
 
-	TArray<int32> indices;
-	TArray<TriangleNode> triangles;
+	TArray<int> Indices;
+	TArray<FTriangleNode> Triangles;
 
-	DelaunayCalculator();
+	FDelaunayCalculator();
 
-	DelaunayTriangulation CalculateTriangulation(const TArray<FVector2D>& verts1);
+	FDelaunayTriangulation* CalculateTriangulation(const TArray<FVector2D>& Verts1);
 
-	void CalculateTriangulation(const TArray<FVector2D>& verts1, DelaunayTriangulation& result);
+	void CalculateTriangulation(const TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result);
 
-	bool Higher(int32 pi0, int32 pi1);
+	bool Higher(const int PI0, const int PI1);
 
 	void RunBowyerWatson();
 
-	void GenerateResult(DelaunayTriangulation& result);
+	void GenerateResult(FDelaunayTriangulation* Result);
 
 	void ShuffleIndices();
 
-	int LeafWithEdge(int32 ti, int32 e0, int32 e1);
+	int LeafWithEdge(int Ti, const int E0, const int E1);
 
-	bool LegalEdge(int32 k, int32 l, int32 i, int32 j);
+	bool LegalEdge(const int K, const int L, const int I, const int J);
 
-	void LegalizeEdge(int32 ti0, int32 ti1, int32 pi, int32 li0, int32 li1);
+	void LegalizeEdge(const int Ti0, int Ti1, const int PiP, const int Li0, const int Li1);
 
-	int FindTriangleNode(int pi);
+	int FindTriangleNode(const int PiP);
 
-	bool PointInTriangle(int pi, int ti);
+	bool PointInTriangle(const int PiP, const int Ti);
 
-	bool ToTheLeft(int pi, int li0, int li1);
+	bool ToTheLeft(const int PiP, const int Li0, const int Li1);
 };

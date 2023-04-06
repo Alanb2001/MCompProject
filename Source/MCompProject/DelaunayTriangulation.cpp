@@ -1,31 +1,31 @@
 #include "DelaunayTriangulation.h"
+#include "Geom.h"
 
-DelaunayTriangulation::DelaunayTriangulation()
+FDelaunayTriangulation::FDelaunayTriangulation()
 {
     Vertices = TArray<FVector2D>();
-    Triangles = TArray<int32>();
+    Triangles = TArray<int>();
 }
 
-void DelaunayTriangulation::Clear()
+void FDelaunayTriangulation::Clear()
 {
     Vertices.Empty();
     Triangles.Empty();
 }
 
-bool DelaunayTriangulation::Verify() const
+bool FDelaunayTriangulation::Verify() const
 {
     try
     {
-        for (int32 i = 0; i < Triangles.Num(); i += 3)
+        for (int i = 0; i < Triangles.Num(); i += 3)
         {
-            FVector2D c0 = Vertices[Triangles[i]];
-            FVector2D c1 = Vertices[Triangles[i + 1]];
-            FVector2D c2 = Vertices[Triangles[i + 2]];
+            FVector2D C0 = Vertices[Triangles[i]];
+            FVector2D C1 = Vertices[Triangles[i + 1]];
+            FVector2D C2 = Vertices[Triangles[i + 2]];
 
-            for (int32 j = 0; j < Vertices.Num(); j++)
+            for (int j = 0; j < Vertices.Num(); j++)
             {
-                FVector2D p = Vertices[j];
-                if (Geom::InsideCircumcircle(p, c0, c1, c2)) {
+                if (FVector2D p = Vertices[j]; FGeom::InsideCircumcircle(p, C0, C1, C2)) {
                     return false;
                 }
             }

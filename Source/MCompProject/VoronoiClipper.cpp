@@ -1,52 +1,53 @@
 #include "VoronoiClipper.h"
+#include "Geom.h"
 
-void VoronoiClipper::ClipSite(VoronoiDiagram& diag, TArray<FVector2D>& polygon, int site, TArray<FVector2D>& clipped)
+void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& Polygon, const int Site, TArray<FVector2D>& Clipped)
 {
-    pointsIn.Empty();
-    pointsIn.Append(polygon);
+    PointsIn.Empty();
+    PointsIn.Append(Polygon);
 
-    int firstEdge, lastEdge;
+    int FirstEdge, LastEdge;
 
-    if (site == diag.Sites.Num() - 1)
+    if (Site == Diag.Sites.Num() - 1)
     {
-        firstEdge = diag.FirstEdgeBySite[site];
-        lastEdge = diag.Edges.Num() - 1;
+        FirstEdge = Diag.FirstEdgeBySite[Site];
+        LastEdge = Diag.Edges.Num() - 1;
     }
     else
     {
-        firstEdge = diag.FirstEdgeBySite[site];
-        lastEdge = diag.FirstEdgeBySite[site + 1] - 1;
+        FirstEdge = Diag.FirstEdgeBySite[Site];
+        LastEdge = Diag.FirstEdgeBySite[Site + 1] - 1;
     }
 
-    for (int ei = firstEdge; ei <= lastEdge; ei++)
+    for (int Ei = FirstEdge; Ei <= LastEdge; Ei++)
     {
-        pointsOut.Empty();
+        PointsOut.Empty();
 
-        Edge edge = diag.Edges[ei];
+        const FFEdge Edge = Diag.Edges[Ei];
 
-        FVector2D lp, ld;
+        FVector2D Lp, Ld;
 
-        if (edge.Type == EdgeType::RayCCW || edge.Type == EdgeType::RayCW)
+        if (Edge.Type == EDgeType::RayCCW || Edge.Type == EDgeType::RayCw)
         {
-            lp = diag.Vertices[edge.Vert0];
-            ld = edge.Direction;
+            Lp = Diag.Vertices[Edge.Vert0];
+            Ld = Edge.Direction;
 
-            if (edge.Type == EdgeType::RayCW)
+            if (Edge.Type == EDgeType::RayCw)
             {
-                ld *= -1;
+                Ld *= -1;
             }
         }
-        else if (edge.Type == EdgeType::Segment)
+        else if (Edge.Type == EDgeType::Segment)
         {
-            FVector2D lp0 = diag.Vertices[edge.Vert0];
-            FVector2D lp1 = diag.Vertices[edge.Vert1];
+            FVector2D Lp0 = Diag.Vertices[Edge.Vert0];
+            FVector2D Lp1 = Diag.Vertices[Edge.Vert1];
 
-            lp = lp0;
-            ld = lp1 - lp0;
+            Lp = Lp0;
+            Ld = Lp1 - Lp0;
         }
-        else if (edge.Type == EdgeType::Line)
+        else if (Edge.Type == EDgeType::Line)
         {
-            throw new std::exception("Haven't implemented voronoi halfplanes yet");
+            throw new std::exception("Haven't implemented voronoi half-planes yet");
         }
         else
         {
@@ -54,36 +55,35 @@ void VoronoiClipper::ClipSite(VoronoiDiagram& diag, TArray<FVector2D>& polygon, 
             return;
         }
 
-        for (int pi0 = 0; pi0 < pointsIn.Num(); pi0++)
+        for (int PI0 = 0; PI0 < PointsIn.Num(); PI0++)
         {
-            int pi1 = pi0 == pointsIn.Num() - 1 ? 0 : pi0 + 1;
+            const int PI1 = PI0 == PointsIn.Num() - 1 ? 0 : PI0 + 1;
 
-            FVector2D p0 = pointsIn[pi0];
-            FVector2D p1 = pointsIn[pi1];
+            FVector2D P0 = PointsIn[PI0];
+            FVector2D P1 = PointsIn[PI1];
 
-            bool p0Inside = Geom::ToTheLeft(p0, lp, lp + ld);
-            bool p1Inside = Geom::ToTheLeft(p1, lp, lp + ld);
+            const bool bP0Inside = FGeom::ToTheLeft(P0, Lp, Lp + Ld);
 
-            if (p0Inside && p1Inside)
+            if (const bool bP1Inside = FGeom::ToTheLeft(P1, Lp, Lp + Ld); bP0Inside && bP1Inside)
             {
-                pointsOut.Add(p1);
+                PointsOut.Add(P1);
             }
-            else if (!p0Inside && !p1Inside)
+            else if (!bP0Inside && !bP1Inside)
             {
                 // Do nothing, both are outside
             }
             else
             {
-                FVector2D intersection = Geom::LineLineIntersection(lp, ld.GetSafeNormal(), p0, (p1 - p0).GetSafeNormal());
+                FVector2D Intersection = FGeom::LineLineIntersection(Lp, Ld.GetSafeNormal(), P0, (P1 - P0).GetSafeNormal());
 
-                if (p0Inside)
+                if (bP0Inside)
                 {
-                    pointsOut.Add(intersection);
+                    PointsOut.Add(Intersection);
                 }
-                else if (p1Inside)
+                else if (bP1Inside)
                 {
-                    pointsOut.Add(intersection);
-                    pointsOut.Add(p1);
+                    PointsOut.Add(Intersection);
+                    PointsOut.Add(P1);
                 }
                 else
                 {
@@ -92,19 +92,19 @@ void VoronoiClipper::ClipSite(VoronoiDiagram& diag, TArray<FVector2D>& polygon, 
             }
         }
 
-        TArray<FVector2D> tmp = pointsIn;
-        pointsIn = pointsOut;
-        pointsOut = tmp;
+        const TArray<FVector2D> Tmp = PointsIn;
+        PointsIn = PointsOut;
+        PointsOut = Tmp;
     }
 
-    if (clipped.Num() == 0)
+    if (Clipped.Num() == NULL)
     {
-        clipped = TArray<FVector2D>();
+        Clipped = TArray<FVector2D>();
     }
     else
     {
-        clipped.Empty();
+        Clipped.Empty();
     }
 
-    clipped.Append(pointsIn);
+    Clipped.Append(PointsIn);
 }

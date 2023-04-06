@@ -1,36 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Geom.h"
-#include "VoronoiCalculator.h"
-#include "VoronoiClipper.h"
-#include <vector>
-#include <cassert>
-#include <random>
-#include <cmath>
-#include "ProceduralMeshComponent.h"
 #include "MeshDescription.h"
 #include <Components/BoxComponent.h>
-#include "StaticMeshAttributes.h"
-#include "ProceduralMeshConversion.h"
-#include "StaticMeshDescription.h"
-#include "Components/StaticMeshComponent.h"
-#include "Rendering/PositionVertexBuffer.h"
-#include "Engine/StaticMesh.h"
-#include "StaticMeshResources.h"
-#include "UObject/ConstructorHelpers.h"
-#include "DrawDebugHelpers.h"
-#include "Components/StaticMeshComponent.h"
-#include "Rendering/PositionVertexBuffer.h"
-#include "Engine/StaticMesh.h"
-#include "StaticMeshResources.h"
-#include "MeshDescriptionBuilder.h"
 #include "AbcImporter.h"
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 
 UCLASS()
-class ABreakable : public AActor
+class ABreakable final : public AActor
 {
 	GENERATED_BODY()
 
@@ -44,19 +22,22 @@ protected:
 
 public:
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(const float DeltaTime) override;
 
-	UStaticMeshComponent* renderer;
-	UStaticMesh* StaticMesh;
-	UBoxComponent* cube;
-	TArray<FVector2D> polygon;
-	TArray<AActor*> overlappingActors;
+	UPROPERTY()
+	UStaticMeshComponent* Renderer;
+	UPROPERTY()
+	UBoxComponent* Cube;
+	UPROPERTY()
+	TArray<AActor*> OverlappingActors;
+
+	TArray<FVector2D> Polygon;
 	
-	float thickness = 1.0f;
-	float minBreakArea = 0.01f;
-	float minImpactToBreak = 50.0f;
-	float area = -1.0f;
-	int age;
+	float Thickness = 1.0f;
+	float MinBreakArea = 0.01f;
+	float MinImpactToBreak = 50.0f;
+	float AreaMv = -1.0f;
+	int Age;
 	
 	float Area();
 
@@ -65,9 +46,9 @@ public:
 	UFUNCTION()
 	void OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult);
 	
-	float NormalizedRandom(float mean, float stddev);
+	float NormalizedRandom(const float Mean, const float Stddev) const;
 	
-	void Break(FVector2D position);
+	void Break(const FVector2D Position);
 
-	UStaticMesh* MeshFromPolygon(const TArray<FVector2D>& Polygon, const float Thickness);
+	UStaticMesh* MeshFromPolygon(const TArray<FVector2D>& Polygon1, const float Thickness1);
 };

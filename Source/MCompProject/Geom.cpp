@@ -1,123 +1,119 @@
 #include "Geom.h"
 
-bool Geom::AreCoincident(const FVector2D& a, const FVector2D& b)
+bool FGeom::AreCoincident(const FVector2D& A, const FVector2D& B)
 {
-    return (a - b).Size() < 0.000001f;
+    return (A - B).Size() < 0.000001f;
 }
 
-bool Geom::ToTheLeft(const FVector2D& p, const FVector2D& l0, const FVector2D& l1)
+bool FGeom::ToTheLeft(const FVector2D& P, const FVector2D& L0, const FVector2D& L1)
 {
-    return ((l1.X - l0.X) * (p.Y - l0.Y) - (l1.Y - l0.Y) * (p.X - l0.X)) >= 0;
+    return (L1.X - L0.X) * (P.Y - L0.Y) - (L1.Y - L0.Y) * (P.X - L0.X) >= 0;
 }
 
-bool Geom::ToTheRight(const FVector2D& p, const FVector2D& l0, const FVector2D& l1)
+bool FGeom::ToTheRight(const FVector2D& P, const FVector2D& L0, const FVector2D& L1)
 {
-    return !ToTheLeft(p, l0, l1);
+    return !ToTheLeft(P, L0, L1);
 }
 
-bool Geom::PointInTriangle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
+bool FGeom::PointInTriangle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
 {
-    return ToTheLeft(p, c0, c1)
-        && ToTheLeft(p, c1, c2)
-        && ToTheLeft(p, c2, c0);
+    return ToTheLeft(P, C0, C1)
+        && ToTheLeft(P, C1, C2)
+        && ToTheLeft(P, C2, C0);
 }
 
-bool Geom::InsideCircumcircle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
+bool FGeom::InsideCircumcircle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
 {
-    float ax = c0.X - p.X;
-    float ay = c0.Y - p.Y;
-    float bx = c1.X - p.X;
-    float by = c1.Y - p.Y;
-    float cx = c2.X - p.X;
-    float cy = c2.Y - p.Y;
+    const float Ax = C0.X - P.X;
+    const float AY = C0.Y - P.Y;
+    const float Bx = C1.X - P.X;
+    const float By = C1.Y - P.Y;
+    const float Cx = C2.X - P.X;
+    const float Cy = C2.Y - P.Y;
 
-    float det = (ax * ax + ay * ay) * (bx * cy - cx * by)
-        - (bx * bx + by * by) * (ax * cy - cx * ay)
-        + (cx * cx + cy * cy) * (ax * by - bx * ay);
+    const float Det = (Ax * Ax + AY * AY) * (Bx * Cy - Cx * By)
+        - (Bx * Bx + By * By) * (Ax * Cy - Cx * AY)
+        + (Cx * Cx + Cy * Cy) * (Ax * By - Bx * AY);
 
-    return det > 0.000001f;
+    return Det > 0.000001f;
 }
 
-FVector2D Geom::RotateRightAngle(const FVector2D& v)
+FVector2D FGeom::RotateRightAngle(const FVector2D& V)
 {
-    float x = v.X;
-    float y = v.Y;
+    const float x = V.X;
+    const float y = V.Y;
     return FVector2D(-y, x);
 }
 
-bool Geom::LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVector2D v1, float& m0, float& m1)
+bool FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1, float& M0, float& M1)
 {
-    float det = (v0.X * v1.Y - v0.Y * v1.X);
-
-    if (FMath::Abs(det) < 0.001f)
+    if (const float Det = V0.X * V1.Y - V0.Y * V1.X; FMath::Abs(Det) < 0.001f)
     {
-        m0 = NAN;
-        m1 = NAN;
+        M0 = NAN;
+        M1 = NAN;
         return false;
     }
     else
     {
-        m0 = ((p0.Y - p1.Y) * v1.X - (p0.X - p1.X) * v1.Y) / det;
+        M0 = ((P0.Y - P1.Y) * V1.X - (P0.X - P1.X) * V1.Y) / Det;
 
-        if (FMath::Abs(v1.X) >= 0.001f)
+        if (FMath::Abs(V1.X) >= 0.001f)
         {
-            m1 = (p0.X + m0 * v0.X - p1.X) / v1.X;
+            M1 = (P0.X + M0 * V0.X - P1.X) / V1.X;
         }
         else
         {
-            m1 = (p0.Y + m0 * v0.Y - p1.Y) / v1.Y;
+            M1 = (P0.Y + M0 * V0.Y - P1.Y) / V1.Y;
         }
 
         return true;
     }
 }
 
-FVector2D Geom::LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVector2D v1)
+FVector2D FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1)
 {
-    float m0, m1;
+    float M1;
 
-    if (LineLineIntersection(p0, v0, p1, v1, m0, m1)) 
+    if (float M0; LineLineIntersection(P0, V0, P1, V1, M0, M1)) 
     {
-        return p0 + m0 * v0;
+        return P0 + M0 * V0;
     }
-    else 
-    {
-        return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
-    }
+    
+    return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 }
 
-FVector2D Geom::CircumcircleCenter(FVector2D c0, FVector2D c1, FVector2D c2)
+FVector2D FGeom::CircumcircleCenter(const FVector2D C0, const FVector2D C1, const FVector2D C2)
 {
-    FVector2D mp0 = 0.5f * (c0 + c1);
-    FVector2D mp1 = 0.5f * (c1 + c2);
+    const FVector2D MP0 = 0.5f * (C0 + C1);
+    const FVector2D MP1 = 0.5f * (C1 + C2);
 
-    FVector2D v0 = RotateRightAngle(c0 - c1);
-    FVector2D v1 = RotateRightAngle(c1 - c2);
+    const FVector2D V0 = RotateRightAngle(C0 - C1);
+    const FVector2D V1 = RotateRightAngle(C1 - C2);
 
-    float m0, m1;
+    float M0, M1;
 
-    LineLineIntersection(mp0, v0, mp1, v1, m0, m1);
+    LineLineIntersection(MP0, V0, MP1, V1, M0, M1);
 
-    return mp0 + m0 * v0;
+    return MP0 + M0 * V0;
 }
 
-FVector2D Geom::TriangleCentroid(const FVector2D& c0, const FVector2D& c1, const FVector2D& c2)
+FVector2D FGeom::TriangleCentroid(const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
 {
-    FVector2D val = (1.0f / 3.0f) * (c0 + c1 + c2);
-    return val;
+    const FVector2D Val = 1.0f / 3.0f * (C0 + C1 + C2);
+    return Val;
 }
 
-float Geom::Area(const TArray<FVector2D>& Polygon)
+float FGeom::Area(const TArray<FVector2D>& Polygon)
 {
     float Area = 0.0f;
-    int32 Count = Polygon.Num();
+    const int Count = Polygon.Num();
 
-    for (int32 i = 0; i < Count; i++)
+    for (int i = 0; i < Count; i++)
     {
-        int32 j = (i == Count - 1) ? 0 : (i + 1);
+        const int j = i == Count - 1 ? 0 : i + 1;
 
-        FVector2D P0 = Polygon[i];
-        FVector2D P1 = Polygon[j];
+        const FVector2D P0 = Polygon[i];
+        const FVector2D P1 = Polygon[j];
 
         Area += P0.X * P1.Y - P1.X * P0.Y;
     }

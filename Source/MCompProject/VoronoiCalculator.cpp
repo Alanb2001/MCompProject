@@ -1,201 +1,205 @@
 #include "VoronoiCalculator.h"
+#include "Geom.h"
 
-VoronoiCalculator::VoronoiCalculator()
+FVoronoiCalculator::FVoronoiCalculator()
 {
-	delCalc = DelaunayCalculator();
-	cmp = PTComparer();
-	pts = TArray<PointTriangle>();
+	DelCalc = FDelaunayCalculator();
+	Cmp = FPtComparer();
+	Pts = TArray<FPointTriangle>();
 }
 
-VoronoiDiagram VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices)
+FFVoronoiDiagram FVoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& InputVertices)
 {
-	VoronoiDiagram result;
-	CalculateDiagram(inputVertices, &result);
-	return result;
+	FFVoronoiDiagram Result;
+	CalculateDiagram(InputVertices, &Result);
+	return Result;
 }
 
-void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices, VoronoiDiagram* result)
+void FVoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& InputVertices, FFVoronoiDiagram* Result)
 {
-	if (inputVertices.Num() < 3)
+	if (InputVertices.Num() < 3)
 	{
 		throw std::runtime_error("Not implemented for < 3 vertices");
 	}
 
-	if (result == nullptr)
+	if (Result == nullptr)
 	{
-		result = new VoronoiDiagram();
+		Result = new FFVoronoiDiagram();
 	}
 	
-	DelaunayTriangulation trig = result->Triangulation;
+	FDelaunayTriangulation trig = Result->Triangulation;
 
-	result->Clear();
+	Result->Clear();
 
-	delCalc.CalculateTriangulation(inputVertices, trig);
+	DelCalc.CalculateTriangulation(InputVertices, &trig);
 
-	pts.Empty();
+	Pts.Empty();
 
-	auto& verts = trig.Vertices;
-	auto& tris = trig.Triangles;
-	auto& centers = result->Vertices;
-	auto& edges = result->Edges;
+	auto& Verts = trig.Vertices;
+	auto& Tris = trig.Triangles;
+	auto& Centers = Result->Vertices;
+	auto& Edges = Result->Edges;
 
-	pts.Reserve(tris.Num());
-	edges.Reserve(tris.Num());
+	Pts.Reserve(Tris.Num());
+	Edges.Reserve(Tris.Num());
 
-	if (tris.Num() > pts.Max())
+	if (Tris.Num() > Pts.Max())
 	{
-		pts.SetNumUninitialized(tris.Num());
+		Pts.SetNumUninitialized(Tris.Num());
 	}
-	if (tris.Num() > edges.Max())
+	if (Tris.Num() > Edges.Max())
 	{
-		edges.SetNumUninitialized(tris.Num());
-	}
-	
-	for (int ti = 0; ti < tris.Num(); ti += 3)
-	{
-		auto p0 = verts[tris[ti]];
-		auto p1 = verts[tris[ti + 1]];
-		auto p2 = verts[tris[ti + 2]];
-
-		assert(Geom::ToTheLeft(p2, p0, p1));
-
-		centers.Add(Geom::CircumcircleCenter(p0, p1, p2));
-	}
-
-	for (int ti = 0; ti < tris.Num(); ti += 3)
-	{
-		pts.Add(PointTriangle(tris[ti], ti));
-		pts.Add(PointTriangle(tris[ti + 1], ti));
-		pts.Add(PointTriangle(tris[ti + 2], ti));
+		Edges.SetNumUninitialized(Tris.Num());
 	}
 	
-	cmp.tris = tris;
-	cmp.verts = verts;
+	for (int Ti = 0; Ti < Tris.Num(); Ti += 3)
+	{
+		auto P0 = Verts[Tris[Ti]];
+		auto P1 = Verts[Tris[Ti + 1]];
+		auto P2 = Verts[Tris[Ti + 2]];
+
+		check(FGeom::ToTheLeft(P2, P0, P1));
+
+		Centers.Add(FGeom::CircumcircleCenter(P0, P1, P2));
+	}
+
+	for (int Ti = 0; Ti < Tris.Num(); Ti += 3)
+	{
+		Pts.Add(FPointTriangle(Tris[Ti], Ti));
+		Pts.Add(FPointTriangle(Tris[Ti + 1], Ti));
+		Pts.Add(FPointTriangle(Tris[Ti + 2], Ti));
+	}
+	
+	Cmp.Tris = Tris;
+	Cmp.Verts = Verts;
 	
 	//pts.Sort(cmp);
 	
-	cmp.tris.Empty();
-	cmp.verts.Empty();
+	Cmp.Tris.Empty();
+	Cmp.Verts.Empty();
 
-	for (int i = 0; i < pts.Num(); i++)
+	for (int i = 0; i < Pts.Num(); i++)
 	{
-		result->FirstEdgeBySite.Add(edges.Num());
+		Result->FirstEdgeBySite.Add(Edges.Num());
 
-		auto start = i;
-		auto end = -1;
+		const int Start = i;
+		int End = -1;
 
-		for (int j = i + 1; j < pts.Num(); j++)
+		for (int j = i + 1; j < Pts.Num(); j++)
 		{
-			if (pts[i].Point != pts[j].Point) {
-				end = j - 1;
+			if (Pts[i].Point != Pts[j].Point)
+			{
+				End = j - 1;
 				break;
 			}
 		}
 
-		if (end == -1)
+		if (End == -1)
 		{
-			end = pts.Num() - 1;
+			End = Pts.Num() - 1;
 		}
 
-		i = end;
+		i = End;
 
-		auto count = end - start;
+		const int Count = End - Start;
 
-		assert(count >= 0);
+		check(Count >= 0);
 
-		for (int ptiCurr = start; ptiCurr <= end; ptiCurr++)
+		for (int PtiCurr = Start; PtiCurr <= End; PtiCurr++)
 		{
-			bool isEdge;
+			bool bIsEdge;
 
-			auto ptiNext = ptiCurr + 1;
+			int PtiNext = PtiCurr + 1;
 
-			if (ptiNext > end) ptiNext = start;
-
-			auto ptCurr = pts[ptiCurr];
-			auto ptNext = pts[ptiNext];
-
-			auto tiCurr = ptCurr.Triangle;
-			auto tiNext = ptNext.Triangle;
-
-			auto p0 = verts[ptCurr.Point];
-
-			FVector2D v2nan = FVector2D(0, 0);
-
-			if (count == 0)
+			if (PtiNext > End)
 			{
-				isEdge = true;
-			}
-			else if (count == 1)
-			{
-
-				FVector2D cCurr = Geom::TriangleCentroid(verts[tris[tiCurr]], verts[tris[tiCurr + 1]], verts[tris[tiCurr + 2]]);
-				FVector2D cNext = Geom::TriangleCentroid(verts[tris[tiNext]], verts[tris[tiNext + 1]], verts[tris[tiNext + 2]]);
-
-				isEdge = Geom::ToTheLeft(cCurr, p0, cNext);
-			}
-			else
-			{
-				isEdge = !SharesEdge(tris, tiCurr, tiNext);
+				PtiNext = Start;
 			}
 
-			if (isEdge)
+			const FPointTriangle PtCurr = Pts[PtiCurr];
+			const FPointTriangle PtNext = Pts[PtiNext];
+
+			const int TiCurr = PtCurr.Triangle;
+			const int TiNext = PtNext.Triangle;
+
+			auto p0 = Verts[PtCurr.Point];
+
+			const FVector2D V2NAN = FVector2D(0, 0);
+
+			if (Count == 0)
 			{
-				FVector2D v0, v1;
+				bIsEdge = true;
+			}
+			else if (Count == 1)
+			{
+				FVector2D CCurr = FGeom::TriangleCentroid(Verts[Tris[TiCurr]], Verts[Tris[TiCurr + 1]], Verts[Tris[TiCurr + 2]]);
+				FVector2D CNext = FGeom::TriangleCentroid(Verts[Tris[TiNext]], Verts[Tris[TiNext + 1]], Verts[Tris[TiNext + 2]]);
 
-				if (ptCurr.Point == tris[tiCurr])
-				{
-					v0 = verts[tris[tiCurr + 2]] - verts[tris[tiCurr + 0]];
-				}
-				else if (ptCurr.Point == tris[tiCurr + 1])
-				{
-					v0 = verts[tris[tiCurr + 0]] - verts[tris[tiCurr + 1]];
-				}
-				else
-				{
-					assert(ptCurr.Point == tris[tiCurr + 2]);
-					v0 = verts[tris[tiCurr + 1]] - verts[tris[tiCurr + 2]];
-				}
-
-				if (ptNext.Point == tris[tiNext])
-				{
-					v1 = verts[tris[tiNext + 0]] - verts[tris[tiNext + 1]];
-				}
-				else if (ptNext.Point == tris[tiNext + 1])
-				{
-					v1 = verts[tris[tiNext + 1]] - verts[tris[tiNext + 2]];
-				}
-				else
-				{
-					assert(ptNext.Point == tris[tiNext + 2]);
-					v1 = verts[tris[tiNext + 2]] - verts[tris[tiNext + 0]];
-				}
-
-				edges.Add(Edge(
-					EdgeType::RayCCW,
-					ptCurr.Point,
-					tiCurr / 3,
-					-1,
-					Geom::RotateRightAngle(v0)
-				));
-
-				edges.Add(Edge(
-					EdgeType::RayCW,
-					ptCurr.Point,
-					tiNext / 3,
-					-1,
-					Geom::RotateRightAngle(v1)
-				));
+				bIsEdge = FGeom::ToTheLeft(CCurr, p0, CNext);
 			}
 			else
 			{
-				if (!Geom::AreCoincident(centers[tiCurr / 3], centers[tiNext / 3]))
+				bIsEdge = !SharesEdge(Tris, TiCurr, TiNext);
+			}
+
+			if (bIsEdge)
+			{
+				FVector2D V0, V1;
+
+				if (PtCurr.Point == Tris[TiCurr])
 				{
-					edges.Add(Edge(
-						EdgeType::Segment,
-						ptCurr.Point,
-						tiCurr / 3,
-						tiNext / 3,
-						v2nan
+					V0 = Verts[Tris[TiCurr + 2]] - Verts[Tris[TiCurr + 0]];
+				}
+				else if (PtCurr.Point == Tris[TiCurr + 1])
+				{
+					V0 = Verts[Tris[TiCurr + 0]] - Verts[Tris[TiCurr + 1]];
+				}
+				else
+				{
+					check(PtCurr.Point == Tris[TiCurr + 2]);
+					V0 = Verts[Tris[TiCurr + 1]] - Verts[Tris[TiCurr + 2]];
+				}
+
+				if (PtNext.Point == Tris[TiNext])
+				{
+					V1 = Verts[Tris[TiNext + 0]] - Verts[Tris[TiNext + 1]];
+				}
+				else if (PtNext.Point == Tris[TiNext + 1])
+				{
+					V1 = Verts[Tris[TiNext + 1]] - Verts[Tris[TiNext + 2]];
+				}
+				else
+				{
+					check(PtNext.Point == Tris[TiNext + 2]);
+					V1 = Verts[Tris[TiNext + 2]] - Verts[Tris[TiNext + 0]];
+				}
+
+				Edges.Add(FFEdge(
+					EDgeType::RayCCW,
+					PtCurr.Point,
+					TiCurr / 3,
+					-1,
+					FGeom::RotateRightAngle(V0)
+				));
+
+				Edges.Add(FFEdge(
+					EDgeType::RayCw,
+					PtCurr.Point,
+					TiNext / 3,
+					-1,
+					FGeom::RotateRightAngle(V1)
+				));
+			}
+			else
+			{
+				if (!FGeom::AreCoincident(Centers[TiCurr / 3], Centers[TiNext / 3]))
+				{
+					Edges.Add(FFEdge(
+						EDgeType::Segment,
+						PtCurr.Point,
+						TiCurr / 3,
+						TiNext / 3,
+						V2NAN
 					));
 				}
 			}
@@ -203,45 +207,48 @@ void VoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& inputVertices,
 	}
 }
 
-int32 VoronoiCalculator::NonSharedPoint(const TArray<int32>& tris, int32 ti0, int32 ti1)
+int32 FVoronoiCalculator::NonSharedPoint(const TArray<int>& Tris, const int Ti0, const int Ti1)
 {
-	check(SharesEdge(tris, ti0, ti1));
+	check(SharesEdge(Tris, Ti0, Ti1));
 
-	const int32 x0 = tris[ti0];
-	const int32 x1 = tris[ti0 + 1];
-	const int32 x2 = tris[ti0 + 2];
+	const int X0 = Tris[Ti0];
+	const int X1 = Tris[Ti0 + 1];
+	const int X2 = Tris[Ti0 + 2];
 
-	const int32 y0 = tris[ti1];
-	const int32 y1 = tris[ti1 + 1];
-	const int32 y2 = tris[ti1 + 2];
+	const int Y0 = Tris[Ti1];
+	const int Y1 = Tris[Ti1 + 1];
+	const int Y2 = Tris[Ti1 + 2];
 
-	if (x0 != y0 && x0 != y1 && x0 != y2) return x0;
-	if (x1 != y0 && x1 != y1 && x1 != y2) return x1;
-	if (x2 != y0 && x2 != y1 && x2 != y2) return x2;
+	if (X0 != Y0 && X0 != Y1 && X0 != Y2) return X0;
+	if (X1 != Y0 && X1 != Y1 && X1 != Y2) return X1;
+	if (X2 != Y0 && X2 != Y1 && X2 != Y2) return X2;
 
 	check(false);
 	return -1;
 }
 
-bool VoronoiCalculator::SharesEdge(const TArray<int32>& tris, int32 ti0, int32 ti1)
+bool FVoronoiCalculator::SharesEdge(const TArray<int>& Tris, const int Ti0, const int Ti1)
 {
-	int32 x0 = tris[ti0];
-	int32 x1 = tris[ti0 + 1];
-	int32 x2 = tris[ti0 + 2];
+	const int X0 = Tris[Ti0];
+	const int X1 = Tris[Ti0 + 1];
+	const int X2 = Tris[Ti0 + 2];
 
-	int32 y0 = tris[ti1];
-	int32 y1 = tris[ti1 + 1];
-	int32 y2 = tris[ti1 + 2];
+	const int Y0 = Tris[Ti1];
+	const int Y1 = Tris[Ti1 + 1];
+	const int Y2 = Tris[Ti1 + 2];
 
-	int32 n = 0;
+	int n = 0;
 
-	if (x0 == y0 || x0 == y1 || x0 == y2) {
+	if (X0 == Y0 || X0 == Y1 || X0 == Y2)
+	{
 		n++;
 	}
-	if (x1 == y0 || x1 == y1 || x1 == y2) {
+	if (X1 == Y0 || X1 == Y1 || X1 == Y2)
+	{
 		n++;
 	}
-	if (x2 == y0 || x2 == y1 || x2 == y2) {
+	if (X2 == Y0 || X2 == Y1 || X2 == Y2)
+	{
 		n++;
 	}
 

@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 
-class VectorExtensions
+class FVectorExtensions
 {
 public:
-	static bool IsReal(float f);
+	static bool IsReal(const float F);
 
-	static bool IsReal(const FVector2D& v2);
+	static bool IsReal(const FVector2D& V2);
 
-	static bool IsReal(const FVector& v3);
+	static bool IsReal(const FVector& V3);
 };

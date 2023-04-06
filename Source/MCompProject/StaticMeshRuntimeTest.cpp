@@ -147,6 +147,5 @@ void AStaticMeshRuntimeTest::BeginPlay()
 void AStaticMeshRuntimeTest::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

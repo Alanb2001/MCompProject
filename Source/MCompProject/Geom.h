@@ -2,28 +2,28 @@
 
 #include "CoreMinimal.h"
 
-class Geom
+class FGeom
 {
 public:
-	static bool AreCoincident(const FVector2D& a, const FVector2D& b);
+	static bool AreCoincident(const FVector2D& A, const FVector2D& B);
 
-	static bool ToTheLeft(const FVector2D& p, const FVector2D& l0, const FVector2D& l1);
+	static bool ToTheLeft(const FVector2D& P, const FVector2D& L0, const FVector2D& L1);
 
-	static bool ToTheRight(const FVector2D& p, const FVector2D& l0, const FVector2D& l1);
+	static bool ToTheRight(const FVector2D& P, const FVector2D& L0, const FVector2D& L1);
 
-	static bool PointInTriangle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2);
+	static bool PointInTriangle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
 
-	static bool InsideCircumcircle(const FVector2D& p, const FVector2D& c0, const FVector2D& c1, const FVector2D& c2);
+	static bool InsideCircumcircle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
 
-	static FVector2D RotateRightAngle(const FVector2D& v);
+	static FVector2D RotateRightAngle(const FVector2D& V);
 
-	static bool LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVector2D v1, float& m0, float& m1);
+	static bool LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1, float& M0, float& M1);
 
-	static FVector2D LineLineIntersection(FVector2D p0, FVector2D v0, FVector2D p1, FVector2D v1);
+	static FVector2D LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1);
 
-	static FVector2D CircumcircleCenter(FVector2D c0, FVector2D c1, FVector2D c2);
+	static FVector2D CircumcircleCenter(const FVector2D C0, const FVector2D C1, const FVector2D C2);
 
-	static FVector2D TriangleCentroid(const FVector2D& c0, const FVector2D& c1, const FVector2D& c2);
+	static FVector2D TriangleCentroid(const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
 
-	static float Area(const TArray<FVector2D>& polygon);
+	static float Area(const TArray<FVector2D>& Polygon);
 };

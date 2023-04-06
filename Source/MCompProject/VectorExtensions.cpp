@@ -1,16 +1,16 @@
 #include "VectorExtensions.h"
 
-bool VectorExtensions::IsReal(float f) 
+bool FVectorExtensions::IsReal(const float F) 
 {
-    return !std::isinf(f) && !std::isnan(f);
+    return !std::isinf(F) && !std::isnan(F);
 }
 
-bool VectorExtensions::IsReal(const FVector2D& v2) 
+bool FVectorExtensions::IsReal(const FVector2D& V2) 
 {
-    return IsReal(v2.X) && IsReal(v2.Y);
+    return IsReal(V2.X) && IsReal(V2.Y);
 }
 
-bool VectorExtensions::IsReal(const FVector& v3) 
+bool FVectorExtensions::IsReal(const FVector& V3) 
 {
-    return IsReal(v3.X) && IsReal(v3.Y) && IsReal(v3.Z);
+    return IsReal(V3.X) && IsReal(V3.Y) && IsReal(V3.Z);
 }

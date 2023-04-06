@@ -1,16 +1,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Geom.h"
 
-class DelaunayTriangulation
+class FDelaunayTriangulation
 {
 public:
 	TArray<FVector2D> Vertices;
 
-	TArray<int32> Triangles;
+	TArray<int> Triangles;
 
-	DelaunayTriangulation();
+	FDelaunayTriangulation();
 
 	void Clear();
 
