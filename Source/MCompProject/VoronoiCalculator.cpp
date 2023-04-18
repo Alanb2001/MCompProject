@@ -27,16 +27,16 @@ void FVoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& InputVertices
 		Result = new FFVoronoiDiagram();
 	}
 	
-	FDelaunayTriangulation trig = Result->Triangulation;
+	FDelaunayTriangulation* trig = Result->Triangulation;
 
 	Result->Clear();
 
-	DelCalc.CalculateTriangulation(InputVertices, &trig);
+	DelCalc.CalculateTriangulation(InputVertices, trig);
 
 	Pts.Empty();
 
-	auto& Verts = trig.Vertices;
-	auto& Tris = trig.Triangles;
+	auto& Verts = trig->Vertices;
+	auto& Tris = trig->Triangles;
 	auto& Centers = Result->Vertices;
 	auto& Edges = Result->Edges;
 

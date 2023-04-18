@@ -14,6 +14,8 @@ struct FPointTriangle
 		: Point(PointP), Triangle(TriangleP)
 	{}
 
+	FPointTriangle(TArray<int> Tri, int Ti);
+
 	FString ToString() const
 	{
 		return FString::Printf(TEXT("PointTriangle(%d, %d)"), Point, Triangle);

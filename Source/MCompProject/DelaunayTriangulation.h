@@ -12,6 +12,4 @@ public:
 	FDelaunayTriangulation();
 
 	void Clear();
-
-	bool Verify() const;
 };

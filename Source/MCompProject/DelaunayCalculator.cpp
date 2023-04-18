@@ -4,7 +4,7 @@
 FDelaunayCalculator::FDelaunayCalculator()
 {
 	Triangles = TArray<FTriangleNode>();
-	Indices = TArray<int32>();
+	Indices = TArray<int>();
 }
 
 FDelaunayTriangulation* FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1)
@@ -18,7 +18,7 @@ FDelaunayTriangulation* FDelaunayCalculator::CalculateTriangulation(const TArray
 
 void FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result)
 {
-	if (Verts1.Num() == NULL) 
+	if (Verts1.Num() == 0) 
 	{
 		throw std::invalid_argument("Points");
 	}

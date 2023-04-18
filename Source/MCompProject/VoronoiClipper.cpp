@@ -8,7 +8,7 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
 
     int FirstEdge, LastEdge;
 
-    if (Site == Diag.Sites.Num() - 1)
+    if (Site == Diag.Sites->Num() - 1)
     {
         FirstEdge = Diag.FirstEdgeBySite[Site];
         LastEdge = Diag.Edges.Num() - 1;

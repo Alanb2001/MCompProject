@@ -24,28 +24,36 @@ struct FFEdge
 
     FString ToString() const
     {
+        FString OutputSting;
+    
         if (Type == EDgeType::Segment)
         {
-            return FString::Printf(TEXT("VoronoiEdge(Segment, %d, %d, %d)"), Site, Vert0, Vert1);
+            OutputSting = FString::Printf(TEXT("VoronoiEdge(Segment, %d, %d, %d)"), Site, Vert0, Vert1);
         }
-        if (Type == EDgeType::Line)
+        else if (Type == EDgeType::Line)
         {
-            return FString::Printf(TEXT("VoronoiEdge(Line, %d, %d, (%f, %f))"), Site, Vert0, Direction.X, Direction.Y);
+            OutputSting = FString::Printf(TEXT("VoronoiEdge(Line, %d, %d, (%f, %f))"), Site, Vert0, Direction.X, Direction.Y);
         }
-        if (Type == EDgeType::RayCCW || Type == EDgeType::RayCw)
+        else if (Type == EDgeType::RayCCW || Type == EDgeType::RayCw)
         {
-            return FString::Printf(TEXT("VoronoiEdge(Ray, %d, %d, (%f, %f))"), Site, Vert0, Direction.X, Direction.Y);
+            OutputSting = FString::Printf(TEXT("VoronoiEdge(Ray, %d, %d, (%f, %f))"), Site, Vert0, Direction.X, Direction.Y);
         }
-        
-        return FString(TEXT("Invalid VoronoiEdge"));
+        else
+        {
+            OutputSting =  FString(TEXT("Invalid VoronoiEdge"));
+        }
+
+        UE_LOG(LogTemp, Warning, TEXT("%s"), *OutputSting);
+
+        return OutputSting;
     }
 };
 
 class FFVoronoiDiagram
 {
 public:
-    FDelaunayTriangulation Triangulation;
-    TArray<FVector2D> Sites;
+    FDelaunayTriangulation* Triangulation;
+    TArray<FVector2D>* Sites;
     TArray<FVector2D> Vertices;
     TArray<FFEdge> Edges;
     TArray<int> FirstEdgeBySite;

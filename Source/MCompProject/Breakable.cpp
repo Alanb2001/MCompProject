@@ -1,8 +1,8 @@
 #include "Breakable.h"
 #include "Geom.h"
 #include "MeshDescriptionBuilder.h"
-#include "ProceduralMeshComponent.h"
 #include "StaticMeshAttributes.h"
+#include "StaticMeshDescription.h"
 #include "StaticMeshOperations.h"
 #include "VoronoiCalculator.h"
 #include "VoronoiClipper.h"
@@ -10,28 +10,28 @@
 // Sets default values
 ABreakable::ABreakable()
 {
-    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-    PrimaryActorTick.bCanEverTick = true;
-
-    // Create the cube mesh component
-    Renderer = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh", false);
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+	
+	// Create the cube mesh component
+	Renderer = CreateDefaultSubobject<UStaticMeshComponent>("CubeMesh", false);
 	SetRootComponent(Renderer);
-
+	
 	// Load the cube mesh
-   static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
-   if (CubeMeshAsset.Succeeded())
-   {
-	   Renderer->SetStaticMesh(CubeMeshAsset.Object);
-   }
-
+	if (static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube")); CubeMeshAsset.Succeeded())
+	{
+	  Renderer->SetStaticMesh(CubeMeshAsset.Object);
+	}
+	
 	Cube = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-    Cube->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
-    Cube->SetCollisionProfileName("Trigger");
-    Cube->SetupAttachment(RootComponent);
-    
-    Renderer->SetSimulatePhysics(true);
-
-    Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
+	Cube->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
+	Cube->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
+	Cube->SetCollisionProfileName("Trigger");
+	Cube->SetupAttachment(RootComponent);
+	
+	Renderer->SetSimulatePhysics(true);
+	
+	Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called when the game starts or when spawned
@@ -48,11 +48,9 @@ void ABreakable::BeginPlay()
 void ABreakable::Tick(const float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    const FVector Pos = GetActorLocation();
-
+	
     Age++;
-    if (Pos.Size() > 1000.0f)
+    if (GetActorLocation().Size() > 1000.0f)
     {
         Destroy();
     }
@@ -84,13 +82,13 @@ void ABreakable::Reload()
 
         Thickness = 2.0f * Scale.Z;
 
-        SetActorScale3D(FVector(1.0f, 1.0f, 1.0f));
+        SetActorScale3D(FVector::OneVector);
     }
-    
+	
     UStaticMesh* Mesh = MeshFromPolygon(Polygon, Thickness);
 	
-    Renderer->SetStaticMesh(Mesh);
-    Cube->SetBoxExtent(Mesh->GetBoundingBox().GetExtent());
+	Renderer->SetStaticMesh(Mesh);
+	Cube->SetBoxExtent(Mesh->GetBoundingBox().GetExtent());
 }
 
 void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
@@ -116,8 +114,8 @@ float ABreakable::NormalizedRandom(const float Mean, const float Stddev) const
 
 void ABreakable::Break(const FVector2D Position)
 {
-  if (Area() > MinBreakArea)
-     {
+	if (Area() > MinBreakArea)
+	{
          FVoronoiCalculator* Calc = new FVoronoiCalculator();
          FVoronoiClipper* Clip =  new FVoronoiClipper();
  
@@ -135,48 +133,35 @@ void ABreakable::Break(const FVector2D Position)
          }
  
          FFVoronoiDiagram Diagram = Calc->CalculateDiagram(Sites);
- 
+		
          TArray<FVector2D> Clipped = TArray<FVector2D>();
  
          for (int i = 0; i < Sites.Num(); i++)
          {
              Clip->ClipSite(Diagram, Polygon, i, Clipped);
-             
+         	
              if (Clipped.Num() > 0)
              {
-                 ABreakable* BS = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
+             	ABreakable* BS = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
  
-                 BS->SetActorScale3D(GetActorScale3D());
-                 
-                 BS->Thickness = Thickness;
-                 BS->Polygon.Empty();
-                 BS->Polygon.Append(Clipped);
-
-                 const float ChildArea = BS->Area();
-
-                 if (const UPrimitiveComponent* PC = Cast<UPrimitiveComponent>(BS); PC != nullptr)
-             	{
-	                if (FBodyInstance* BodyInstance = PC->GetBodyInstance(); BodyInstance != nullptr)
-             		{
-	                    if (const FBodyInstance* ParentBodyInstance = PC->GetBodyInstance(); ParentBodyInstance != nullptr)
-             			{
-	                        const float Mass = ParentBodyInstance->GetBodyMass();
-             				BodyInstance->SetMassScale(ParentBodyInstance->GetMassOverride());
-             				BodyInstance->SetMassOverride(Mass * (ChildArea / AreaMv));
-             			}
-             		}
-             	}
+             	BS->SetActorScale3D(GetActorScale3D());
+             	
+             	BS->Thickness = Thickness;
+                BS->Polygon.Empty();
+             	BS->Polygon.Append(Clipped);
+             	//BS->Polygon = Clipped;
+             	BS->Reload();
              }
          }
  
          SetActorHiddenInGame(true);
          Destroy();
-     }
+	}
 }
 
 UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, const float Thickness1)
 {
-	int Count = Polygon1.Num();
+	const int Count = Polygon1.Num();
 	
 	TArray<FVector> Verts;
 	TArray<FVector> Norms;
@@ -190,8 +175,8 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	int Ni = 0;
 	int Ti = 0;
 	
-	float EXT = 0.5f * Thickness1;
-
+	const float EXT = 0.5f * Thickness1;
+	
 	FMeshDescription MeshDesc;
 	FStaticMeshAttributes Attributes(MeshDesc);
 	Attributes.Register();
@@ -210,10 +195,8 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	// Top
 	for (int i = 0; i < Count; i++)
 	{
-	    //Verts[VI++] = FVector(Polygon[i].X, Polygon[i].Y, EXT);
 	    VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
 	    Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
-	    //Norms[Ni++] = FVector(0, 0, 1);
 	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 	    MeshDescBuilder.SetInstanceNormal(Instance,  Norms[Ni++] = FVector(0, 0, 1));
 	    VertexInstanceIds.Add(Instance);
@@ -222,10 +205,8 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	// Bottom
 	for (int i = 0; i < Count; i++)
 	{
-	    //Verts[VI++] = FVector(Polygon[i].X, Polygon[i].Y, -EXT);
 	    VertexIDs[i] = MeshDescBuilder.AppendVertex( Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
 	    Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
-	    //Norms[Ni++] = FVector(0, 0, -1);
 	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 	    MeshDescBuilder.SetInstanceNormal(Instance,  Norms[Ni++] = FVector(0, 0, -1));
 	    VertexInstanceIds.Add(Instance);
@@ -234,19 +215,9 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	// Sides
 	for (int i = 0; i < Count; i++)
 	{
-	    int INext = i == Count - 1 ? 0 : i + 1;
-	    
-	    //Verts[VI++] = FVector(Polygon[i].X, Polygon[i].Y, EXT);
-	    //Verts[VI++] = FVector(Polygon[i].X, Polygon[i].Y, -EXT);
-	    //Verts[VI++] = FVector(Polygon[INext].X, Polygon[INext].Y, -EXT);
-	    //Verts[VI++] = FVector(Polygon[INext].X, Polygon[INext].Y, EXT);
-		
-	    FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
+		const int INext = i == Count - 1 ? 0 : i + 1;
 	
-	    //Norms[Ni++] = Norm;
-	    //Norms[Ni++] = Norm;
-	    //Norms[Ni++] = Norm;
-	    //Norms[Ni++] = Norm;
+	    const FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
 		
 		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
 		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
@@ -275,32 +246,20 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	
 	for (int Vert = 2; Vert < Count; Vert++)
 	{
-	    //Tris[Ti++] = 0;
-	    //Tris[Ti++] = Vert - 1;
-	    //Tris[Ti++] = Vert;
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = 0], VertexInstanceIds[Tris[Ti++] = Vert - 1], VertexInstanceIds[Tris[Ti++] = Vert], PolygonGroup);
 	}
 	
 	for (int Vert = 2; Vert < Count; Vert++)
 	{
-	    //Tris[Ti++] = Count;
-	    //Tris[Ti++] = Count + Vert;
-	    //Tris[Ti++] = Count + Vert - 1;
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = Count], VertexInstanceIds[Tris[Ti++] = Count + Vert], VertexInstanceIds[Tris[Ti++] = Count + Vert - 1], PolygonGroup);
 	}
 	
 	for (int Vert = 0; Vert < Count; Vert++)
 	{
-	    int Si = 2 * Count + 4 * Vert;
+		const int Si = 2 * Count + 4 * Vert;
 		
-	    //Tris[Ti++] = Si;
-	    //Tris[Ti++] = Si + 1;
-	    //Tris[Ti++] = Si + 2;
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = Si], VertexInstanceIds[Tris[Ti++] = Si + 1], VertexInstanceIds[Tris[Ti++] = Si + 2], PolygonGroup);
-	    
-	    //Tris[Ti++] = Si;
-	    //Tris[Ti++] = Si + 2;
-	    //Tris[Ti++] = Si + 3;
+		
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = Si], VertexInstanceIds[Tris[Ti++] = Si + 2], VertexInstanceIds[Tris[Ti++] = Si + 3], PolygonGroup);
 	}
 	
@@ -309,11 +268,7 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	check(Ni == Norms.Num());
 	
 	UStaticMesh* StaticMesh = NewObject<UStaticMesh>(this);
-	//UProceduralMeshComponent* ProceduralMeshComponent = NewObject<UProceduralMeshComponent>(this);
-	
 	StaticMesh->GetStaticMaterials().Add(FStaticMaterial());
-	
-	//ProceduralMeshComponent->CreateMeshSection(0, Verts, Tris, Norms, TArray<FVector2D>(), TArray<FColor>(), TArray<FProcMeshTangent>(), true);
 	
 	UStaticMesh::FBuildMeshDescriptionsParams MDParams;
 	MDParams.bBuildSimpleCollision = true;

@@ -6,7 +6,7 @@
 #include "SimpleCylinderActor.generated.h"
 
 UCLASS()
-class ASimpleCylinderActor : public AActor
+class ASimpleCylinderActor final : public AActor
 {
 	GENERATED_BODY()
 
@@ -35,10 +35,10 @@ public:
 	virtual void BeginPlay() override;
 
 private:
-	void GenerateMesh();
+	void GenerateMesh() const;
 
 	UPROPERTY(VisibleAnywhere, Category = Materials)
-		UProceduralMeshComponent* mesh;
+		UProceduralMeshComponent* Mesh;
 
-	void GenerateCylinder(TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FProcMeshTangent>& Tangents, float Height, float InWidth, int32 InCrossSectionCount, bool bCapEnds = false, bool bDoubleSided = false, bool bInSmoothNormals = true);
+	void GenerateCylinder(TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FProcMeshTangent>& Tangents, float HeightP, float InWidth, int32 InCrossSectionCount, bool bCapEndsP = false, bool bDoubleSidedP = false, bool bInSmoothNormals = true) const;
 };

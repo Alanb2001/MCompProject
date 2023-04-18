@@ -13,6 +13,7 @@
     </None>
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
+    <None Include="..\..\MCompProject.sln.DotSettings.user" />
     <Filter Include="Config">
       <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
     </Filter>
@@ -65,6 +66,12 @@
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\DelaunayUsage.h">
+      <Filter>Source\MCompProject</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MCompProject\FFVoronoiDiagram.cpp">
+      <Filter>Source\MCompProject</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MCompProject\FFVoronoiDiagram.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
     <ClCompile Include="..\..\Source\MCompProject\Geom.cpp">
@@ -122,12 +129,6 @@
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\VoronoiClipper.h">
-      <Filter>Source\MCompProject</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\MCompProject\VoronoiDiagram.cpp">
-      <Filter>Source\MCompProject</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\MCompProject\VoronoiDiagram.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
   </ItemGroup>
