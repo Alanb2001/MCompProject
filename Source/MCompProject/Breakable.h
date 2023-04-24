@@ -32,9 +32,6 @@ public:
 	UBoxComponent* Cube;
 	
 	UPROPERTY(EditAnywhere)
-	TArray<AActor*> OverlappingActors;
-	
-	UPROPERTY(EditAnywhere)
 	TArray<FVector2D> Polygon;
 	
 	UPROPERTY(EditAnywhere)

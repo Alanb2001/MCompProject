@@ -25,13 +25,12 @@ ABreakable::ABreakable()
 	
 	Cube = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	Cube->SetBoxExtent(FVector(60.0f, 60.0f, 60.0f));
-	Cube->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); 
+	Cube->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Cube->SetCollisionProfileName("Trigger");
+	Cube->SetNotifyRigidBodyCollision(true);
 	Cube->SetupAttachment(RootComponent);
 	
 	Renderer->SetSimulatePhysics(true);
-	
-	Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called when the game starts or when spawned
@@ -42,6 +41,8 @@ void ABreakable::BeginPlay()
     Age = 0;
 
     Reload();
+
+	Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called every frame
@@ -88,7 +89,7 @@ void ABreakable::Reload()
     UStaticMesh* Mesh = MeshFromPolygon(Polygon, Thickness);
 	
 	Renderer->SetStaticMesh(Mesh);
-	Cube->SetBoxExtent(Mesh->GetBoundingBox().GetExtent());
+	Cube->SetBoxExtent(FVector(65.0f, 65.0f, 65.0f));
 }
 
 void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
@@ -149,7 +150,6 @@ void ABreakable::Break(const FVector2D Position)
              	BS->Thickness = Thickness;
                 BS->Polygon.Empty();
              	BS->Polygon.Append(Clipped);
-             	//BS->Polygon = Clipped;
              	BS->Reload();
              }
          }
