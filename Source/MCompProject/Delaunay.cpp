@@ -1,7 +1,8 @@
 #include "Delaunay.h"
 
 
-TArray<FDTriangle> FDelaunay::Triangulate(TArray<FDPoint>& InPoints, int32 InDelaunayConvexMultiplier) const {
+TArray<FDTriangle> FDelaunay::Triangulate(TArray<FDPoint>& InPoints, int32 InDelaunayConvexMultiplier) const
+{
 	TArray<FDTriangle> Triangles;
 	int32 NPoints = InPoints.Num();
 	if (NPoints < 3) {
@@ -50,20 +51,24 @@ TArray<FDTriangle> FDelaunay::Triangulate(TArray<FDPoint>& InPoints, int32 InDel
 	Triangles.Add(FDTriangle(SuP1, SuP2, SuP3));
 
 	// Use NPoints instead of InPoints.Num() when looping over the original points, to not include the initial super points.
-	for (int32 i = 0; i < NPoints; i++) {
+	for (int32 i = 0; i < NPoints; i++)
+	{
 		TArray<FDEdge> Edges;
 
 		// For each point, look which triangles their CircumCircle contains this point
 		// , in which case we don't want the triangle because it is not a Delaunay triangle.
-		for (int32 j = Triangles.Num() - 1; j >= 0; j--) {
+		for (int32 j = Triangles.Num() - 1; j >= 0; j--)
+		{
 			FDTriangle CurTriangle = Triangles[j];
-			if (CurTriangle.IsInCircumCircle(InPoints[i])) {
+			if (CurTriangle.IsInCircumCircle(InPoints[i]))
+			{
 
 				// For each edge, add if not yet present, or remove the existing one
 				auto AddEdgeOrRemoveSimilar = [&Edges](const FDEdge& InEdge) 
 				{
 					int32 Removed = Edges.RemoveAll([InEdge](const FDEdge& Edge) { return Edge.IsSimilar(InEdge); });
-					if (Removed == 0) {
+					if (Removed == 0)
+					{
 						Edges.Add(InEdge);
 					}
 				};
@@ -77,8 +82,10 @@ TArray<FDTriangle> FDelaunay::Triangulate(TArray<FDPoint>& InPoints, int32 InDel
 			}
 		}
 
-		for (int32 j = 0; j < Edges.Num(); j++) {
-			if (Triangles.Num() > TrMax) {
+		for (int32 j = 0; j < Edges.Num(); j++)
+		{
+			if (Triangles.Num() > TrMax)
+			{
 				UE_LOG(LogActor, Error, TEXT("Made more triangles than required. "));
 			}
 
@@ -87,12 +94,11 @@ TArray<FDTriangle> FDelaunay::Triangulate(TArray<FDPoint>& InPoints, int32 InDel
 	}
 
 	// Remove triangles using the initial super points.
-	for (int i = Triangles.Num() - 1; i >= 0; i--) {
+	for (int i = Triangles.Num() - 1; i >= 0; i--)
+	{
 		FDTriangle Triangle = Triangles[i];
-		if (Triangle.P1.Id >= NPoints
-			|| Triangle.P2.Id >= NPoints
-			|| Triangle.P3.Id >= NPoints
-			) {
+		if (Triangle.P1.Id >= NPoints || Triangle.P2.Id >= NPoints || Triangle.P3.Id >= NPoints)
+		{
 			Triangles.RemoveAt(i);
 		}
 	}

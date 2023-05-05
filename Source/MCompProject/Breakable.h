@@ -4,7 +4,6 @@
 #include "MeshDescription.h"
 #include <Components/BoxComponent.h>
 #include "AbcImporter.h"
-#include "ProceduralMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Breakable.generated.h"
 

@@ -1,4 +1,6 @@
 #include "StaticMeshRuntimeTest.h"
+#include "MeshDescriptionBuilder.h"
+#include "StaticMeshAttributes.h"
 
 // Sets default values
 AStaticMeshRuntimeTest::AStaticMeshRuntimeTest()
@@ -6,8 +8,8 @@ AStaticMeshRuntimeTest::AStaticMeshRuntimeTest()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	_smComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("smComp"), false);
-	SetRootComponent(_smComp);
+	SMComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("smComp"), false);
+	SetRootComponent(SMComp);
 }
 
 // Called when the game starts or when spawned
@@ -140,7 +142,7 @@ void AStaticMeshRuntimeTest::BeginPlay()
 	staticMesh->BuildFromMeshDescriptions(meshDescPtrs, mdParams);
 	
 	// Assign new static mesh to the static mesh component
-	_smComp->SetStaticMesh(staticMesh);
+	SMComp->SetStaticMesh(staticMesh);
 }
 
 // Called every frame

@@ -73,8 +73,6 @@ void FVoronoiCalculator::CalculateDiagram(const TArray<FVector2D>& InputVertices
 	Cmp.Tris = Tris;
 	Cmp.Verts = Verts;
 	
-	//pts.Sort(cmp);
-	
 	Cmp.Tris.Empty();
 	Cmp.Verts.Empty();
 

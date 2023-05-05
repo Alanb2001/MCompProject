@@ -31,6 +31,8 @@ ABreakable::ABreakable()
 	Cube->SetupAttachment(RootComponent);
 	
 	Renderer->SetSimulatePhysics(true);
+
+	Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called when the game starts or when spawned
@@ -41,8 +43,6 @@ void ABreakable::BeginPlay()
     Age = 0;
 
     Reload();
-
-	Cube->OnComponentHit.AddDynamic(this, &ABreakable::OnCollision);
 }
 
 // Called every frame
@@ -89,7 +89,7 @@ void ABreakable::Reload()
     UStaticMesh* Mesh = MeshFromPolygon(Polygon, Thickness);
 	
 	Renderer->SetStaticMesh(Mesh);
-	Cube->SetBoxExtent(FVector(65.0f, 65.0f, 65.0f));
+	Cube->SetBoxExtent(FVector(61.0f, 61.0f, 61.0f));
 }
 
 void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
@@ -117,8 +117,8 @@ void ABreakable::Break(const FVector2D Position)
 {
 	if (Area() > MinBreakArea)
 	{
-         FVoronoiCalculator* Calc = new FVoronoiCalculator();
-         FVoronoiClipper* Clip =  new FVoronoiClipper();
+         FVoronoiCalculator Calc = FVoronoiCalculator();
+         FVoronoiClipper Clip = FVoronoiClipper();
  
          TArray<FVector2D> Sites;
   		 Sites.SetNum(10);
@@ -133,25 +133,25 @@ void ABreakable::Break(const FVector2D Position)
                  Dist * FMath::Sin(Angle));
          }
  
-         FFVoronoiDiagram Diagram = Calc->CalculateDiagram(Sites);
+         FFVoronoiDiagram Diagram = Calc.CalculateDiagram(Sites);
+
+		 TArray<FVector2D> Clipped = TArray<FVector2D>();
 		
-         TArray<FVector2D> Clipped = TArray<FVector2D>();
- 
          for (int i = 0; i < Sites.Num(); i++)
          {
-             Clip->ClipSite(Diagram, Polygon, i, Clipped);
+         	Clip.ClipSite(Diagram, Polygon, i, Clipped);
          	
-             if (Clipped.Num() > 0)
-             {
-             	ABreakable* BS = GetWorld()->SpawnActor<ABreakable>(GetClass(), GetTransform().GetLocation(), GetTransform().GetRotation().Rotator());
- 
-             	BS->SetActorScale3D(GetActorScale3D());
+         	if (Clipped.Num() > 0)
+         	{
+         		ABreakable* BS = GetWorld()->SpawnActorDeferred<ABreakable>(GetClass(), GetTransform());
+         		BS->FinishSpawning(GetTransform());
+         		BS->SetActorScale3D(GetActorScale3D());
              	
-             	BS->Thickness = Thickness;
-                BS->Polygon.Empty();
-             	BS->Polygon.Append(Clipped);
-             	BS->Reload();
-             }
+         		BS->Thickness = Thickness;
+         		BS->Polygon.Empty();
+         		BS->Polygon = Clipped;
+         		BS->Reload();
+         	}
          }
  
          SetActorHiddenInGame(true);
@@ -191,26 +191,82 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	TArray< FVertexInstanceID > VertexInstanceIds;
 	FVertexInstanceID Instance;
 	FPolygonGroupID PolygonGroup = MeshDescBuilder.AppendPolygonGroup();
+
+	// Top
+	//for (int i = 0; i < Count; i++)
+	//{
+	//	VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
+	//	Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
+	//	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = FVector(0, 0, 1));
+	//	VertexInstanceIds.Add(Instance);
+	//}
 	
 	// Top
 	for (int i = 0; i < Count; i++)
 	{
-	    VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
+	    VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
+	    Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
+	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	    MeshDescBuilder.SetInstanceNormal(Instance,  Norms[Ni++] = FVector(0, 0, -1));
+	    VertexInstanceIds.Add(Instance);
+	}
+
+	// Bottom
+	//for (int i = 0; i < Count; i++)
+	//{
+	//	VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
+	//	Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
+	//	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+	//	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = FVector(0, 0, -1));
+	//	VertexInstanceIds.Add(Instance);
+	//}
+	
+	// Bottom
+	for (int i = 0; i < Count; i++)
+	{
+	    VertexIDs[i] = MeshDescBuilder.AppendVertex( Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
 	    Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
 	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 	    MeshDescBuilder.SetInstanceNormal(Instance,  Norms[Ni++] = FVector(0, 0, 1));
 	    VertexInstanceIds.Add(Instance);
 	}
 	
-	// Bottom
-	for (int i = 0; i < Count; i++)
-	{
-	    VertexIDs[i] = MeshDescBuilder.AppendVertex( Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
-	    Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
-	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
-	    MeshDescBuilder.SetInstanceNormal(Instance,  Norms[Ni++] = FVector(0, 0, -1));
-	    VertexInstanceIds.Add(Instance);
-	}
+	// Sides
+    //for (int i = 0; i < Count; i++)
+    //{
+    //	const int INext = i == Count - 1 ? 0 : i + 1;
+    //
+    //	const FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
+    //
+    //	VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120 - EXT * Norm.X * 120, Polygon1[i].Y * 120 - EXT * Norm.Y * 120, EXT * 120));
+    //	Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
+    //	//MeshDescBuilder.AppendUV(FVector2D(Polygon1[i].X, Polygon1[i].Y), Instance);
+    //	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    //	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
+    //	VertexInstanceIds.Add(Instance);
+    //
+    //	VertexIDs[Count + i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120 + EXT * Norm.X * 120, Polygon1[i].Y * 120 + EXT * Norm.Y * 120, EXT * 120));
+    //	Instance = MeshDescBuilder.AppendInstance(VertexIDs[Count + i]);
+    //	//MeshDescBuilder.AppendUV(FVector2D(Polygon1[i].X, Polygon1[i].Y), Instance);
+    //	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    //	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
+    //	VertexInstanceIds.Add(Instance);
+    //
+    //	VertexIDs[2 * Count + i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120 - EXT * Norm.X * 120, Polygon1[i].Y * 120 - EXT * Norm.Y * 120, -EXT * 120));
+    //	Instance = MeshDescBuilder.AppendInstance(VertexIDs[2 * Count + i]);
+    //	//MeshDescBuilder.AppendUV(FVector2D(Polygon1[i].X, Polygon1[i].Y), Instance);
+    //	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    //	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = -Norm);
+    //	VertexInstanceIds.Add(Instance);
+    //
+    //	VertexIDs[3 * Count + i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120 + EXT * Norm.X * 120, Polygon1[i].Y * 120 + EXT * Norm.Y * 120, -EXT * 120));
+    //	Instance = MeshDescBuilder.AppendInstance(VertexIDs[3 * Count + i]);
+    //	//MeshDescBuilder.AppendUV(FVector2D(Polygon1[i].X, Polygon1[i].Y), Instance);
+    //	MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    //	MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = -Norm);
+    //	VertexInstanceIds.Add(Instance);
+    //}
 	
 	// Sides
 	for (int i = 0; i < Count; i++)
@@ -219,19 +275,13 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	
 	    const FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
 		
-		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
+		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
 		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
 	    MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 	    MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
 		VertexInstanceIds.Add(Instance);
 		
-		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, -EXT * 120));
-		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
-		MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
-		MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
-		VertexInstanceIds.Add(Instance);
-		
-		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[INext].X * 120, Polygon1[INext].Y * 120, -EXT * 120));
+		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * 120, Polygon1[i].Y * 120, EXT * 120));
 		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
 		MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 		MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
@@ -241,18 +291,57 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
 		MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
 		MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
+		VertexInstanceIds.Add(Instance);
+		
+		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[INext].X * 120, Polygon1[INext].Y * 120, -EXT * 120));
+		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);
+		MeshDescBuilder.SetInstanceColor(Instance, FVector4f(1.0f, 1.0f, 1.0f, 1.0f));
+		MeshDescBuilder.SetInstanceNormal(Instance, Norms[Ni++] = Norm);
 	    VertexInstanceIds.Add(Instance);
 	}
-	
+
+	// Top
+	//for (int i = 0; i < Count - 2; i++)
+	//{
+	//	MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = VertexIDs[0]], VertexInstanceIds[Tris[Ti++] = VertexIDs[i + 1]], VertexInstanceIds[Tris[Ti++] = VertexIDs[i + 2]], PolygonGroup);
+	//	//Tris[Ti++] = VertexIDs[0];
+	//	//Tris[Ti++] = VertexIDs[i + 1];
+	//	//Tris[Ti++] = VertexIDs[i + 2];
+	//}
+
 	for (int Vert = 2; Vert < Count; Vert++)
 	{
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = 0], VertexInstanceIds[Tris[Ti++] = Vert - 1], VertexInstanceIds[Tris[Ti++] = Vert], PolygonGroup);
 	}
+
+	// Bottom
+	//for (int i = 0; i < Count - 2; i++)
+	//{
+	//	MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = VertexIDs[Count]], VertexInstanceIds[Tris[Ti++] = VertexIDs[2 * Count + i + 2]], VertexInstanceIds[Tris[Ti++] = VertexIDs[2 * Count + i + 1]], PolygonGroup);
+	//	//Tris[Ti++] = VertexIDs[Count];
+	//	//Tris[Ti++] = VertexIDs[2 * Count + i + 2];
+	//	//Tris[Ti++] = VertexIDs[2 * Count + i + 1];
+	//}
 	
 	for (int Vert = 2; Vert < Count; Vert++)
 	{
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = Count], VertexInstanceIds[Tris[Ti++] = Count + Vert], VertexInstanceIds[Tris[Ti++] = Count + Vert - 1], PolygonGroup);
 	}
+	
+	// Sides
+	//for (int i = 0; i < Count - 2; i++)
+	//{
+	//	MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = VertexIDs[Count]], VertexInstanceIds[Tris[Ti++] = VertexIDs[Count + 1]], VertexInstanceIds[Tris[Ti++] = VertexIDs[Count + 2]], PolygonGroup);
+	//	//Tris[Ti++] = VertexIDs[Count];
+	//	//Tris[Ti++] = VertexIDs[Count + 1];
+	//	//Tris[Ti++] = VertexIDs[Count + 2];
+
+	//	MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = VertexIDs[Count]], VertexInstanceIds[Tris[Ti++] = VertexIDs[Count + 2]], VertexInstanceIds[Tris[Ti++] = VertexIDs[Count + 3]], PolygonGroup);
+	//	//Tris[Ti++] = VertexIDs[Count];
+	//	//Tris[Ti++] = VertexIDs[Count + 2];
+	//	//Tris[Ti++] = VertexIDs[Count + 3];
+	//}
+	
 	
 	for (int Vert = 0; Vert < Count; Vert++)
 	{
@@ -279,5 +368,10 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	MeshDescPtr.Emplace(&MeshDesc);
 	StaticMesh->BuildFromMeshDescriptions(MeshDescPtr, MDParams);
 	
+	// Create the mesh
+	UStaticMesh* Mesh = NewObject<UStaticMesh>();
+	Mesh->InitResources();
+	
 	return StaticMesh;
+	
 }

@@ -2,9 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MeshDescription.h"
-#include "StaticMeshAttributes.h"
-#include "MeshDescriptionBuilder.h"
 #include "StaticMeshRuntimeTest.generated.h"
 
 UCLASS()
@@ -24,6 +21,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UStaticMeshComponent *_smComp;
+	UPROPERTY()
+	UStaticMeshComponent *SMComp;
 	
 };
