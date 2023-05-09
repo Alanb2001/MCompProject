@@ -5,102 +5,187 @@
 #include "FFVoronoiDiagram.h"
 #include "Geom.h"
 
-struct FPointTriangle
+template <class T>
+struct Comparer
 {
-	const int Point;
-	const int Triangle;
+	Comparer(void){}
+	~Comparer(){}
 
-	FPointTriangle(const int PointP, const int TriangleP)
-		: Point(PointP), Triangle(TriangleP)
-	{}
-
-	FPointTriangle(TArray<int> Tri, int Ti);
-
-	FString ToString() const
+	int operator () (const T & a, const T & b) const
 	{
-		return FString::Printf(TEXT("PointTriangle(%d, %d)"), Point, Triangle);
+		return ( (a < b) ? -1 : ( (a > b) ? 1 : 0) );
+	}
+
+	int operator () (const T * a, const T * b) const
+	{
+		return ( (*a < *b) ? -1 : ( (*a > *b) ? 1 : 0) );
 	}
 };
 
-class FPtComparer 
+template <>
+struct Comparer <std::string>
 {
-public:
-	TArray<FVector2D> Verts;
-	TArray<int> Tris;
+	Comparer(void){}
+	~Comparer(){}
 
-	int Compare(const FPointTriangle& Pt0, const FPointTriangle& Pt1) const
+	int operator () (std::string & a, std::string & b)
 	{
-		if (Pt0.Point < Pt1.Point)
-		{
-			return -1;
-		}
-		if (Pt0.Point > Pt1.Point)
-		{
-			return 1;
-		}
-		if (Pt0.Triangle == Pt1.Triangle)
-		{
-			check(Pt0.Point == Pt1.Point);
-			return 0;
-		}
-		
-		return CompareAngles(Pt0, Pt1);
-	}
-
-	int CompareAngles(const FPointTriangle& Pt0, const FPointTriangle& Pt1) const
-	{
-		check(Pt0.Point == Pt1.Point);
-
-		const FVector2D Rp = Verts[Pt0.Point];
-
-		const FVector2D P0 = Centroid(Pt0) - Rp;
-		const FVector2D P1 = Centroid(Pt1) - Rp;
-
-		const bool bQ0 = P0.Y < 0 || P0.Y == 0 && P0.X < 0;
-
-		if (const bool bQ1 = P1.Y < 0 || P1.Y == 0 && P1.Y < 0; bQ0 == bQ1)
-		{
-			if (const float CP = P0.X * P1.Y - P0.Y * P1.X; CP > 0)
-			{
-				return -1;
-			}
-			else
-			{
-				if (CP < 0)
-				{
-					return 1;
-				}
-				
-				return 0;
-			}
-		}
-		else
-		{
-			return bQ1 ? -1 : 1;
-		}
-	}
-
-	FVector2D Centroid(const FPointTriangle& Pt) const
-	{
-		const int Ti = Pt.Triangle;
-		return FGeom::TriangleCentroid(Verts[Tris[Ti]], Verts[Tris[Ti + 1]], Verts[Tris[Ti + 2]]);
+		return a.compare(b);
 	}
 };
 
 class FVoronoiCalculator
 {
-public:
-	FDelaunayCalculator DelCalc;
-	FPtComparer Cmp;
-	TArray<FPointTriangle> Pts;
+		struct FPointTriangle
+	{
+		const int Point;
+		const int Triangle;
 
+		FPointTriangle(const int PointP, const int TriangleP)
+			: Point(PointP), Triangle(TriangleP)
+		{
+		}
+
+		FPointTriangle(TArray<int> Tri, int Ti);
+	};
+
+	class FPTComparer /*: public Comparer<FPointTriangle>*/
+	{
+	public:
+		TArray<FVector2D> verts;
+		TArray<int32> tris;
+		
+		bool operator ()(const FPointTriangle& Pt0, const FPointTriangle& Pt1) const
+		{
+			return static_cast<bool>(Compare(Pt0, Pt1));
+		}
+		
+		int Compare(FPointTriangle Pt0, FPointTriangle Pt1) const
+		{
+			if (Pt0.Point < Pt1.Point)
+			{
+				return -1;
+			}
+			else if (Pt0.Point > Pt1.Point)
+			{
+				return 1;
+			}
+			else if (Pt0.Triangle == Pt1.Triangle)
+			{
+				check(Pt0.Point == Pt1.Point);
+				return 0;
+			}
+			else
+			{
+				return CompareAngles(Pt0, Pt1);
+			}
+		}
+		
+		int CompareAngles(FPointTriangle pt0, FPointTriangle pt1) const
+		{
+			check(pt0.Point == pt1.Point);
+
+			// "reference" point
+			auto rp = verts[pt0.Point];
+
+			// triangle centroids in "reference point space"
+			FVector2D p0 = Centroid(pt0) - rp;
+			FVector2D p1 = Centroid(pt1) - rp;
+
+			// quadrants. false for 1,2, true for 3,4.
+			bool q0 = ((p0.Y < 0) || ((p0.Y == 0) && (p0.X < 0)));
+			bool q1 = ((p1.Y < 0) || ((p1.Y == 0) && (p1.X < 0)));
+
+			if (q0 == q1)
+			{
+				// p0 and p1 are within 180 degrees of each other, so just
+				// use cross product to find out if pt1 is to the left of
+				// p0.
+				float cp = p0.X * p1.Y - p0.Y * p1.X;
+
+				if (cp > 0)
+				{
+					return -1;
+				}
+				else if (cp < 0)
+				{
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				// if q0 != q1, q1 is true, then p0 is in quadrants 1 or 2,
+				// and p1 is in quadrants 3 or 4. Hence, pt0 < pt1. If q1
+				// is not true, vice versa.
+				return q1 ? -1 : 1;
+			}
+		}
+		
+		FVector2D Centroid(FPointTriangle pt) const
+		{
+			auto ti = pt.Triangle;
+			return FGeom::TriangleCentroid(verts[tris[ti]], verts[tris[ti + 1]], verts[tris[ti + 2]]);
+		}
+		
+		//bool Compare(const FPointTriangle& pt0, const FPointTriangle& pt1) 
+		//{
+		//	if (pt0.Point < pt1.Point)
+		//	{
+		//		return true;
+		//	}
+		//	else if (pt0.Point > pt1.Point)
+		//	{
+		//		return false;
+		//	}
+		//	else if (pt0.Triangle == pt1.Triangle)
+		//	{
+		//		check(pt0.Point == pt1.Point);
+		//		return true;
+		//	}
+		//	else
+		//	{
+		//		return CompareAngles(pt0, pt1);
+		//	}
+		//}
+		
+
+		
+		//TFunction<bool(const FPointTriangle&, const FPointTriangle&)> Cmp =
+		//	[this](const FPointTriangle& Pt0, const FPointTriangle& Pt1) -> bool
+		//{
+		//	if (Pt0.Point < Pt1.Point)
+		//	{
+		//		return true;
+		//	}
+		//	else if (Pt0.Point > Pt1.Point)
+		//	{
+		//		return false;
+		//	}
+		//	else if (Pt0.Triangle == Pt1.Triangle)
+		//	{
+		//		check(Pt0.Point == Pt1.Point);
+		//		return true;
+		//	}
+		//	else
+		//	{
+		//		return CompareAngles(Pt0, Pt1) < 0;
+		//	}
+		//};
+	};
+public:
+	FPTComparer Cmp;
+	FDelaunayCalculator DelCalc;
+	TArray<FPointTriangle> Pts;
+	
 	FVoronoiCalculator();
 
-	FFVoronoiDiagram CalculateDiagram(const TArray<FVector2D>& InputVertices);
+	FFVoronoiDiagram CalculateDiagram(TArray<FVector2D>& InputVertices);
 
-	void CalculateDiagram(const TArray<FVector2D>& InputVertices, FFVoronoiDiagram* Result);
+	void CalculateDiagram(TArray<FVector2D>& InputVertices, FFVoronoiDiagram* Result);
 
-	static int32 NonSharedPoint(const TArray<int>& Tris, const int Ti0, const int Ti1);
-
-	static bool SharesEdge(const TArray<int>& Tris, const int Ti0, const int Ti1);
+	static bool SharesEdge(const TArray<int> Tris, const int Ti0, const int Ti1);
 };

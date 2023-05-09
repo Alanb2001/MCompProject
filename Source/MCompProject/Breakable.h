@@ -47,6 +47,9 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	int Age;
+
+	UPROPERTY(EditAnywhere)
+	float Size = 120;
 	
 	UFUNCTION()
 	float Area();

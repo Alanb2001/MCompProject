@@ -4,7 +4,6 @@
 FDelaunayCalculator::FDelaunayCalculator()
 {
 	Triangles = TArray<FTriangleNode>();
-	Indices = TArray<int>();
 }
 
 FDelaunayTriangulation* FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1)
@@ -159,28 +158,6 @@ void FDelaunayCalculator::GenerateResult(FDelaunayTriangulation* Result)
 			Result->Triangles.Add(t.P1);
 			Result->Triangles.Add(t.P2);
 		}
-	}
-}
-
-void FDelaunayCalculator::ShuffleIndices()
-{
-	Indices.Empty();
-	Indices.Reserve(Verts.Num());
-
-	for (int i = 0; i < Verts.Num(); i++)
-	{
-		Indices.Add(i);
-	}
-
-	check(Indices.Num() == Verts.Num());
-
-	for (int i = 0; i < Verts.Num() - 1; i++)
-	{
-		const int j = FMath::RandRange(i, Verts.Num());
-
-		const int Tmp = Indices[i];
-		Indices[i] = Indices[j];
-		Indices[j] = Tmp;
 	}
 }
 

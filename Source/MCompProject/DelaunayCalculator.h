@@ -117,15 +117,6 @@ struct FTriangleNode
 		}
 		throw std::invalid_argument("p not in triangle");
 	}
-
-	FString ToString() const
-	{
-		if (IsLeaf())
-		{
-			return FString::Printf(TEXT("TriangleNode(%d, %d, %d)"), P0, P1, P2);
-		}
-		return FString::Printf(TEXT("TriangleNode(%d, %d, %d, %d, %d, %d)"), P0, P1, P2, C0, C1, C2);
-	}
 };
 
 class FDelaunayCalculator
@@ -133,8 +124,6 @@ class FDelaunayCalculator
 public:
 	int Highest = -1;
 	TArray<FVector2D> Verts;
-
-	TArray<int> Indices;
 	TArray<FTriangleNode> Triangles;
 
 	FDelaunayCalculator();
@@ -148,9 +137,7 @@ public:
 	void RunBowyerWatson();
 
 	void GenerateResult(FDelaunayTriangulation* Result);
-
-	void ShuffleIndices();
-
+	
 	int LeafWithEdge(int Ti, const int E0, const int E1);
 
 	bool LegalEdge(const int K, const int L, const int I, const int J);

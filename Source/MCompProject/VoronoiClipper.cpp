@@ -23,21 +23,21 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
     {
         PointsOut.Empty();
 
-        const FFEdge Edge = Diag.Edges[Ei];
+        const FFVoronoiDiagram::FFEdge Edge = Diag.Edges[Ei];
 
         FVector2D Lp, Ld;
 
-        if (Edge.Type == EDgeType::RayCCW || Edge.Type == EDgeType::RayCw)
+        if (Edge.Type == FFVoronoiDiagram::EDgeType::RayCCW || Edge.Type == FFVoronoiDiagram::EDgeType::RayCw)
         {
             Lp = Diag.Vertices[Edge.Vert0];
             Ld = Edge.Direction;
 
-            if (Edge.Type == EDgeType::RayCw)
+            if (Edge.Type == FFVoronoiDiagram::EDgeType::RayCw)
             {
                 Ld *= -1;
             }
         }
-        else if (Edge.Type == EDgeType::Segment)
+        else if (Edge.Type == FFVoronoiDiagram::EDgeType::Segment)
         {
             FVector2D Lp0 = Diag.Vertices[Edge.Vert0];
             FVector2D Lp1 = Diag.Vertices[Edge.Vert1];
@@ -45,7 +45,7 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
             Lp = Lp0;
             Ld = Lp1 - Lp0;
         }
-        else if (Edge.Type == EDgeType::Line)
+        else if (Edge.Type == FFVoronoiDiagram::EDgeType::Line)
         {
             throw new std::exception("Haven't implemented voronoi half-planes yet");
         }

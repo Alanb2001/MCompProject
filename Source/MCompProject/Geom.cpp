@@ -1,28 +1,28 @@
 #include "Geom.h"
 
-bool FGeom::AreCoincident(const FVector2D& A, const FVector2D& B)
+bool FGeom::AreCoincident(FVector2D A, FVector2D B)
 {
     return (A - B).Size() < 0.000001f;
 }
 
-bool FGeom::ToTheLeft(const FVector2D& P, const FVector2D& L0, const FVector2D& L1)
+bool FGeom::ToTheLeft(FVector2D P, FVector2D L0, FVector2D L1)
 {
     return (L1.X - L0.X) * (P.Y - L0.Y) - (L1.Y - L0.Y) * (P.X - L0.X) >= 0;
 }
 
-bool FGeom::ToTheRight(const FVector2D& P, const FVector2D& L0, const FVector2D& L1)
+bool FGeom::ToTheRight(FVector2D P, FVector2D L0, FVector2D L1)
 {
     return !ToTheLeft(P, L0, L1);
 }
 
-bool FGeom::PointInTriangle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
+bool FGeom::PointInTriangle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2)
 {
     return ToTheLeft(P, C0, C1)
         && ToTheLeft(P, C1, C2)
         && ToTheLeft(P, C2, C0);
 }
 
-bool FGeom::InsideCircumcircle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
+bool FGeom::InsideCircumcircle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2)
 {
     const float Ax = C0.X - P.X;
     const float AY = C0.Y - P.Y;
@@ -38,14 +38,15 @@ bool FGeom::InsideCircumcircle(const FVector2D& P, const FVector2D& C0, const FV
     return Det > 0.000001f;
 }
 
-FVector2D FGeom::RotateRightAngle(const FVector2D& V)
+FVector2D FGeom::RotateRightAngle(FVector2D V)
 {
     const float x = V.X;
-    const float y = V.Y;
-    return FVector2D(-y, x);
+    V.X = -V.Y;
+    V.Y = x;
+    return V;
 }
 
-bool FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1, float& M0, float& M1)
+bool FGeom::LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1, float& M0, float& M1)
 {
     if (const float Det = V0.X * V1.Y - V0.Y * V1.X; FMath::Abs(Det) < 0.001f)
     {
@@ -70,7 +71,7 @@ bool FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, const F
     }
 }
 
-FVector2D FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1)
+FVector2D FGeom::LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1)
 {
     float M1;
 
@@ -82,7 +83,7 @@ FVector2D FGeom::LineLineIntersection(const FVector2D P0, const FVector2D V0, co
     return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
 }
 
-FVector2D FGeom::CircumcircleCenter(const FVector2D C0, const FVector2D C1, const FVector2D C2)
+FVector2D FGeom::CircumcircleCenter(FVector2D C0, FVector2D C1, FVector2D C2)
 {
     const FVector2D MP0 = 0.5f * (C0 + C1);
     const FVector2D MP1 = 0.5f * (C1 + C2);
@@ -97,13 +98,13 @@ FVector2D FGeom::CircumcircleCenter(const FVector2D C0, const FVector2D C1, cons
     return MP0 + M0 * V0;
 }
 
-FVector2D FGeom::TriangleCentroid(const FVector2D& C0, const FVector2D& C1, const FVector2D& C2)
+FVector2D FGeom::TriangleCentroid(FVector2D C0, FVector2D C1, FVector2D C2)
 {
     const FVector2D Val = 1.0f / 3.0f * (C0 + C1 + C2);
     return Val;
 }
 
-float FGeom::Area(const TArray<FVector2D>& Polygon)
+float FGeom::Area(TArray<FVector2D> Polygon)
 {
     float Area = 0.0f;
     const int Count = Polygon.Num();

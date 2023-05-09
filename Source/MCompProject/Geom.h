@@ -5,25 +5,25 @@
 class FGeom
 {
 public:
-	static bool AreCoincident(const FVector2D& A, const FVector2D& B);
+	static bool AreCoincident(FVector2D A, FVector2D B);
 
-	static bool ToTheLeft(const FVector2D& P, const FVector2D& L0, const FVector2D& L1);
+	static bool ToTheLeft(FVector2D P, FVector2D L0, FVector2D L1);
 
-	static bool ToTheRight(const FVector2D& P, const FVector2D& L0, const FVector2D& L1);
+	static bool ToTheRight(FVector2D P, FVector2D L0, FVector2D L1);
 
-	static bool PointInTriangle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
+	static bool PointInTriangle(FVector2D P,  FVector2D C0, FVector2D C1, FVector2D C2);
 
-	static bool InsideCircumcircle(const FVector2D& P, const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
+	static bool InsideCircumcircle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2);
 
-	static FVector2D RotateRightAngle(const FVector2D& V);
+	static FVector2D RotateRightAngle(FVector2D V);
 
-	static bool LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1, float& M0, float& M1);
+	static bool LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1, float& M0, float& M1);
 
-	static FVector2D LineLineIntersection(const FVector2D P0, const FVector2D V0, const FVector2D P1, const FVector2D V1);
+	static FVector2D LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1);
 
-	static FVector2D CircumcircleCenter(const FVector2D C0, const FVector2D C1, const FVector2D C2);
+	static FVector2D CircumcircleCenter(FVector2D C0, FVector2D C1, FVector2D C2);
 
-	static FVector2D TriangleCentroid(const FVector2D& C0, const FVector2D& C1, const FVector2D& C2);
+	static FVector2D TriangleCentroid(FVector2D C0, FVector2D C1, FVector2D C2);
 
-	static float Area(const TArray<FVector2D>& Polygon);
+	static float Area(TArray<FVector2D> Polygon);
 };
