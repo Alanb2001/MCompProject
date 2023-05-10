@@ -61,11 +61,11 @@ public:
 	void OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	float NormalizedRandom(const float Mean, const float Stddev) const;
+	float NormalizedRandom(float Mean, float Stddev);
 
 	UFUNCTION()
-	void Break(const FVector2D Position);
+	void Break(FVector2D Position);
 
 	UFUNCTION()
-	UStaticMesh* MeshFromPolygon(const TArray<FVector2D>& Polygon1, const float Thickness1);
+	UStaticMesh* MeshFromPolygon(TArray<FVector2D> Polygon1, float Thickness1);
 };

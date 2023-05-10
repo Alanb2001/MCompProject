@@ -74,7 +74,7 @@ void ABreakable::Reload()
     
     if (Polygon.Num() == 0)
     {
-	    const FVector Scale = 0.5f * GetActorScale3D();
+    	FVector Scale = 0.5f * GetActorScale3D();
 
         Polygon.Add(FVector2D(-Scale.X, -Scale.Y));
         Polygon.Add(FVector2D(Scale.X, -Scale.Y));
@@ -102,7 +102,7 @@ void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, U
     }
 }
 
-float ABreakable::NormalizedRandom(const float Mean, const float Stddev) const
+float ABreakable::NormalizedRandom(float Mean, float Stddev)
 {
 	const float U1 = FMath::FRand();
 	const float U2 = FMath::FRand();
@@ -113,33 +113,33 @@ float ABreakable::NormalizedRandom(const float Mean, const float Stddev) const
     return Mean + Stddev * RandStdNormal;
 }
 
-void ABreakable::Break(const FVector2D Position)
+void ABreakable::Break(FVector2D Position)
 {
 	if (Area() > MinBreakArea)
 	{
-         FVoronoiCalculator* Calc = new FVoronoiCalculator();
-         FVoronoiClipper* Clip = new FVoronoiClipper();
+         FVoronoiCalculator Calc = FVoronoiCalculator();
+         FVoronoiClipper Clip = FVoronoiClipper();
  
          TArray<FVector2D> Sites;
   		 Sites.SetNum(10);
  
          for (int i = 0; i < Sites.Num(); i++)
          {
-	         const float Dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
-	         const float Angle = 2.0f * PI * FMath::FRand();
+         	float Dist = FMath::Abs(NormalizedRandom(0.5f, 1.0f / 2.0f));
+         	float Angle = 2.0f * PI * FMath::FRand();
  
              Sites[i] = Position + FVector2D(
                  Dist * FMath::Cos(Angle),
                  Dist * FMath::Sin(Angle));
          }
  
-         FFVoronoiDiagram Diagram = Calc->CalculateDiagram(Sites);
+         FFVoronoiDiagram Diagram = Calc.CalculateDiagram(Sites);
 
 		 TArray<FVector2D> Clipped = TArray<FVector2D>();
 		
          for (int i = 0; i < Sites.Num(); i++)
          {
-         	Clip->ClipSite(Diagram, Polygon, i, Clipped);
+         	Clip.ClipSite(Diagram, Polygon, i, Clipped);
          	
          	if (Clipped.Num() > 0)
          	{
@@ -159,9 +159,9 @@ void ABreakable::Break(const FVector2D Position)
 	}
 }
 
-UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, const float Thickness1)
+UStaticMesh* ABreakable::MeshFromPolygon(TArray<FVector2D> Polygon1, float Thickness1)
 {
-	const int Count = Polygon1.Num();
+	int Count = Polygon1.Num();
 	
 	TArray<FVector> Verts;
 	TArray<FVector> Norms;
@@ -175,7 +175,7 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	int Ni = 0;
 	int Ti = 0;
 	
-	const float EXT = 0.5f * Thickness1;
+	float EXT = 0.5f * Thickness1;
 	
 	FMeshDescription MeshDesc;
 	FStaticMeshAttributes Attributes(MeshDesc);
@@ -215,9 +215,9 @@ UStaticMesh* ABreakable::MeshFromPolygon(const TArray<FVector2D>& Polygon1, cons
 	// Sides
 	for (int i = 0; i < Count; i++)
 	{
-		const int INext = i == Count - 1 ? 0 : i + 1;
+		int INext = i == Count - 1 ? 0 : i + 1;
 	
-	    const FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
+		FVector Norm = FVector::CrossProduct(FVector(Polygon1[INext].X - Polygon1[i].X, Polygon1[INext].Y - Polygon1[i].Y, 0), FVector(0, 0, 1)).GetSafeNormal();
 		
 		VertexIDs[i] = MeshDescBuilder.AppendVertex(Verts[VI++] = FVector(Polygon1[i].X * Size, Polygon1[i].Y * Size, -EXT * Size));
 		Instance = MeshDescBuilder.AppendInstance(VertexIDs[i]);

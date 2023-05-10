@@ -17,17 +17,17 @@ struct FTriangleNode
 	int A1;
 	int A2;
 
-	bool IsLeaf() const
+	bool IsLeaf()
 	{
 		return C0 < 0 && C1 < 0 && C2 < 0;
 	}
 
-	bool IsInner() const
+	bool IsInner()
 	{
 		return P0 >= 0 && P1 >= 0 && P2 >= 0;
 	}
 
-	FTriangleNode(const int P0, const int P1, const int P2)
+	FTriangleNode(int P0, int P1, int P2)
 		: P0(P0)
 		, P1(P1)
 		, P2(P2)
@@ -40,7 +40,7 @@ struct FTriangleNode
 	{
 	}
 
-	bool HasEdge(const int E0, const int E1) const
+	bool HasEdge(int E0, int E1)
 	{
 		if (E0 == P0)
 		{
@@ -58,7 +58,7 @@ struct FTriangleNode
 		return false;
 	}
 
-	int OtherPoint(const int P0P, const int P1P) const
+	int OtherPoint(int P0P, int P1P)
 	{
 		if (P0P == P0)
 		{
@@ -101,7 +101,7 @@ struct FTriangleNode
 		throw std::invalid_argument("p0 and p1 not on triangle");
 	}
 
-	int Opposite(const int P) const
+	int Opposite(int P)
 	{
 		if (P == P0)
 		{
@@ -127,26 +127,24 @@ public:
 	TArray<FTriangleNode> Triangles;
 
 	FDelaunayCalculator();
+	
+	void CalculateTriangulation(TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result);
 
-	FDelaunayTriangulation* CalculateTriangulation(const TArray<FVector2D>& Verts1);
-
-	void CalculateTriangulation(const TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result);
-
-	bool Higher(const int PI0, const int PI1);
+	bool Higher(int PI0, int PI1);
 
 	void RunBowyerWatson();
 
 	void GenerateResult(FDelaunayTriangulation* Result);
 	
-	int LeafWithEdge(int Ti, const int E0, const int E1);
+	int LeafWithEdge(int Ti, int E0, int E1);
 
-	bool LegalEdge(const int K, const int L, const int I, const int J);
+	bool LegalEdge(int K, int L, int I, int J);
 
-	void LegalizeEdge(const int Ti0, int Ti1, const int PiP, const int Li0, const int Li1);
+	void LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1);
 
-	int FindTriangleNode(const int PiP);
+	int FindTriangleNode(int PiP);
 
-	bool PointInTriangle(const int PiP, const int Ti);
+	bool PointInTriangle(int PiP, int Ti);
 
-	bool ToTheLeft(const int PiP, const int Li0, const int Li1);
+	bool ToTheLeft(int PiP, int Li0, int Li1);
 };

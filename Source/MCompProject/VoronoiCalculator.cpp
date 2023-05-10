@@ -1,8 +1,6 @@
 #include "VoronoiCalculator.h"
 #include "Geom.h"
 
-//bool CompareAngles(const FPointTriangle& pt0, const FPointTriangle& pt1);
-
 FVoronoiCalculator::FVoronoiCalculator()
 {
 	Cmp = FPTComparer();
@@ -10,37 +8,32 @@ FVoronoiCalculator::FVoronoiCalculator()
 	Pts = TArray<FPointTriangle>();
 }
 
-FFVoronoiDiagram FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices)
+FFVoronoiDiagram FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices)
 {
 	FFVoronoiDiagram Result;
-	CalculateDiagram(InputVertices, &Result);
+	CalculateDiagram(InputVertices, Result);
 	return Result;
 }
 
-void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVoronoiDiagram* Result)
+void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVoronoiDiagram& Result)
 {
 	if (InputVertices.Num() < 3)
 	{
 		throw std::runtime_error("Not implemented for < 3 vertices");
 	}
-
-	if (Result == nullptr)
-	{
-		Result = new FFVoronoiDiagram();
-	}
 	
-	FDelaunayTriangulation* Trig = Result->Triangulation;
+	FDelaunayTriangulation* Trig = Result.Triangulation;
 
-	Result->Clear();
+	Result.Clear();
 
 	DelCalc.CalculateTriangulation(InputVertices, Trig);
 
 	Pts.Empty();
 
-	auto& Verts = Trig->Vertices;
-	auto& Tris = Trig->Triangles;
-	auto& Centers = Result->Vertices;
-	auto& Edges = Result->Edges;
+	TArray<UE::Math::TVector2<double>>& Verts = Trig->Vertices;
+	TArray<int>& Tris = Trig->Triangles;
+	TArray<UE::Math::TVector2<double>>& Centers = Result.Vertices;
+	TArray<FFVoronoiDiagram::FFEdge>& Edges = Result.Edges;
 	
 	if (Tris.Num() > Pts.Max())
 	{
@@ -53,9 +46,9 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVo
 
 	for (int Ti = 0; Ti < Tris.Num(); Ti += 3)
 	{
-		auto& P0 = Verts[Tris[Ti]];
-		auto& P1 = Verts[Tris[Ti + 1]];
-		auto& P2 = Verts[Tris[Ti + 2]];
+		UE::Math::TVector2<double> P0 = Verts[Tris[Ti]];
+		UE::Math::TVector2<double> P1 = Verts[Tris[Ti + 1]];
+		UE::Math::TVector2<double> P2 = Verts[Tris[Ti + 2]];
 
 		check(FGeom::ToTheLeft(P2, P0, P1));
 
@@ -71,14 +64,6 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVo
 
 	Cmp.tris = Tris;
 	Cmp.verts = Verts;
-
-	//Sort the vector using a lambda expression as the comparator
-	//Pts.Sort([](const FPointTriangle& Pt0, const FPointTriangle& Pt1)
-	//{
-	//	FPTComparer comp;
-	//	
-	//	return comp.Compare(Pt0, Pt1);
-	//});
 	
 	Pts.Sort(Cmp);
 
@@ -87,7 +72,7 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVo
 	
 	for (int i = 0; i < Pts.Num(); i++)
 	{
-		Result->FirstEdgeBySite.Add(Edges.Num());
+		Result.FirstEdgeBySite.Add(Edges.Num());
 
 		int Start = i;
 		int End = -1;
@@ -126,10 +111,10 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVo
 			FPointTriangle PtCurr = Pts[PtiCurr];
 			FPointTriangle PtNext = Pts[PtiNext];
 
-			auto& TiCurr = PtCurr.Triangle;
-			auto& TiNext = PtNext.Triangle;
+			int TiCurr = PtCurr.Triangle;
+			int TiNext = PtNext.Triangle;
 
-			auto p0 = Verts[PtCurr.Point];
+			UE::Math::TVector2<double> p0 = Verts[PtCurr.Point];
 
 			FVector2D V2NAN = FVector2D(0, 0);
 
@@ -139,9 +124,9 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D>& InputVertices, FFVo
 			}
 			else if (Count == 1)
 			{
-				auto CCurr = FGeom::TriangleCentroid(Verts[Tris[TiCurr]], Verts[Tris[TiCurr + 1]],
+				FVector2D CCurr = FGeom::TriangleCentroid(Verts[Tris[TiCurr]], Verts[Tris[TiCurr + 1]],
 				                                     Verts[Tris[TiCurr + 2]]);
-				auto CNext = FGeom::TriangleCentroid(Verts[Tris[TiNext]], Verts[Tris[TiNext + 1]],
+				FVector2D CNext = FGeom::TriangleCentroid(Verts[Tris[TiNext]], Verts[Tris[TiNext + 1]],
 				                                     Verts[Tris[TiNext + 2]]);
 
 				bIsEdge = FGeom::ToTheLeft(CCurr, p0, CNext);

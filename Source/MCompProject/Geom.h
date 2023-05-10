@@ -9,10 +9,6 @@ public:
 
 	static bool ToTheLeft(FVector2D P, FVector2D L0, FVector2D L1);
 
-	static bool ToTheRight(FVector2D P, FVector2D L0, FVector2D L1);
-
-	static bool PointInTriangle(FVector2D P,  FVector2D C0, FVector2D C1, FVector2D C2);
-
 	static bool InsideCircumcircle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2);
 
 	static FVector2D RotateRightAngle(FVector2D V);

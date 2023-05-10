@@ -1,7 +1,7 @@
 #include "VoronoiClipper.h"
 #include "Geom.h"
 
-void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& Polygon, const int Site, TArray<FVector2D>& Clipped)
+void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, TArray<FVector2D>& Polygon, int& Site, TArray<FVector2D>& Clipped)
 {
     PointsIn.Empty();
     PointsIn.Append(Polygon);
@@ -23,7 +23,7 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
     {
         PointsOut.Empty();
 
-        const FFVoronoiDiagram::FFEdge Edge = Diag.Edges[Ei];
+        FFVoronoiDiagram::FFEdge Edge = Diag.Edges[Ei];
 
         FVector2D Lp, Ld;
 
@@ -45,10 +45,6 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
             Lp = Lp0;
             Ld = Lp1 - Lp0;
         }
-        else if (Edge.Type == FFVoronoiDiagram::EDgeType::Line)
-        {
-            throw new std::exception("Haven't implemented voronoi half-planes yet");
-        }
         else
         {
             check(false);
@@ -57,14 +53,14 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
 
         for (int PI0 = 0; PI0 < PointsIn.Num(); PI0++)
         {
-            const int PI1 = PI0 == PointsIn.Num() - 1 ? 0 : PI0 + 1;
+            int PI1 = PI0 == PointsIn.Num() - 1 ? 0 : PI0 + 1;
 
             FVector2D P0 = PointsIn[PI0];
             FVector2D P1 = PointsIn[PI1];
 
-            const bool bP0Inside = FGeom::ToTheLeft(P0, Lp, Lp + Ld);
+            bool bP0Inside = FGeom::ToTheLeft(P0, Lp, Lp + Ld);
 
-            if (const bool bP1Inside = FGeom::ToTheLeft(P1, Lp, Lp + Ld); bP0Inside && bP1Inside)
+            if (bool bP1Inside = FGeom::ToTheLeft(P1, Lp, Lp + Ld); bP0Inside && bP1Inside)
             {
                 PointsOut.Add(P1);
             }
@@ -92,7 +88,7 @@ void FVoronoiClipper::ClipSite(FFVoronoiDiagram& Diag, const TArray<FVector2D>& 
             }
         }
 
-        const TArray<FVector2D> Tmp = PointsIn;
+        TArray<FVector2D> Tmp = PointsIn;
         PointsIn = PointsOut;
         PointsOut = Tmp;
     }

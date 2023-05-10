@@ -6,16 +6,7 @@ FDelaunayCalculator::FDelaunayCalculator()
 	Triangles = TArray<FTriangleNode>();
 }
 
-FDelaunayTriangulation* FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1)
-{
-	FDelaunayTriangulation* Result = nullptr;
-
-	CalculateTriangulation(Verts1, Result);
-
-	return Result;
-}
-
-void FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result)
+void FDelaunayCalculator::CalculateTriangulation(TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result)
 {
 	if (Verts1.Num() == 0) 
 	{
@@ -48,7 +39,7 @@ void FDelaunayCalculator::CalculateTriangulation(const TArray<FVector2D>& Verts1
 	this->Verts.Empty();
 }
 
-bool FDelaunayCalculator::Higher(const int PI0, const int PI1)
+bool FDelaunayCalculator::Higher(int PI0, int PI1)
 {
 	if (PI0 == -2)
 	{
@@ -67,8 +58,8 @@ bool FDelaunayCalculator::Higher(const int PI0, const int PI1)
 		return false;
 	}
 
-	const FVector2D P0 = Verts[PI0];
-	const FVector2D P1 = Verts[PI1];
+	FVector2D P0 = Verts[PI0];
+	FVector2D P1 = Verts[PI1];
 
 	if (P0.Y < P1.Y)
 	{
@@ -85,24 +76,24 @@ void FDelaunayCalculator::RunBowyerWatson()
 {
 	for (int i = 0; i < Verts.Num(); i++)
 	{
-		const int PiP = i;
+		int PiP = i;
 		
 		if (PiP == Highest)
 		{
 			continue;
 		}
 
-		const int Ti = FindTriangleNode(PiP);
+		int Ti = FindTriangleNode(PiP);
 		
 		FTriangleNode t = Triangles[Ti];
 
-		const int P0 = t.P0;
-		const int P1 = t.P1;
-		const int P2 = t.P2;
+		int P0 = t.P0;
+		int P1 = t.P1;
+		int P2 = t.P2;
 
-		const int Nti0 = Triangles.Num();
-		const int Nti1 = Nti0 + 1;
-		const int Nti2 = Nti0 + 2;
+		int Nti0 = Triangles.Num();
+		int Nti1 = Nti0 + 1;
+		int Nti2 = Nti0 + 2;
 
 		FTriangleNode Nt0 = FTriangleNode(PiP, P0, P1);
 		FTriangleNode Nt1 = FTriangleNode(PiP, P1, P2);
@@ -152,7 +143,7 @@ void FDelaunayCalculator::GenerateResult(FDelaunayTriangulation* Result)
 
 	for (int i = 1; i < Triangles.Num(); i++)
 	{
-		if (const FTriangleNode& t = Triangles[i]; t.IsLeaf() && t.IsInner())
+		if (FTriangleNode& t = Triangles[i]; t.IsLeaf() && t.IsInner())
 		{
 			Result->Triangles.Add(t.P0);
 			Result->Triangles.Add(t.P1);
@@ -161,13 +152,13 @@ void FDelaunayCalculator::GenerateResult(FDelaunayTriangulation* Result)
 	}
 }
 
-int FDelaunayCalculator::LeafWithEdge(int Ti, const int E0, const int E1)
+int FDelaunayCalculator::LeafWithEdge(int Ti, int E0, int E1)
 {
 	check(Triangles[Ti].HasEdge(E0, E1));
 
 	while (!Triangles[Ti].IsLeaf())
 	{
-		if (const FTriangleNode t = Triangles[Ti]; t.C0 != -1 && Triangles[t.C0].HasEdge(E0, E1))
+		if (FTriangleNode t = Triangles[Ti]; t.C0 != -1 && Triangles[t.C0].HasEdge(E0, E1))
 		{
 			Ti = t.C0;
 		}
@@ -189,13 +180,13 @@ int FDelaunayCalculator::LeafWithEdge(int Ti, const int E0, const int E1)
 	return Ti;
 }
 
-bool FDelaunayCalculator::LegalEdge(const int K, const int L, const int I, const int J)
+bool FDelaunayCalculator::LegalEdge(int K, int L, int I, int J)
 {
 	checkf(K != Highest && K >= 0, TEXT("Assertion failed: k != highest && k >= 0"));
 
-	const bool bLMagic = L < 0;
-	const bool bIMagic = I < 0;
-	const bool bJMagic = J < 0;
+	bool bLMagic = L < 0;
+	bool bIMagic = I < 0;
+	bool bJMagic = J < 0;
 
 	checkf(!(bIMagic && bJMagic), TEXT("Assertion failed: !(iMagic && jMagic)"));
 
@@ -207,9 +198,9 @@ bool FDelaunayCalculator::LegalEdge(const int K, const int L, const int I, const
 	{
 		checkf(!bJMagic, TEXT("Assertion failed: !jMagic"));
 
-		const FVector2D& p = Verts[L];
-		const FVector2D& L0 = Verts[K];
-		const FVector2D& L1 = Verts[J];
+		FVector2D p = Verts[L];
+		FVector2D L0 = Verts[K];
+		FVector2D L1 = Verts[J];
 
 		return FGeom::ToTheLeft(p, L0, L1);
 	}
@@ -217,19 +208,19 @@ bool FDelaunayCalculator::LegalEdge(const int K, const int L, const int I, const
 	{
 		checkf(!bIMagic, TEXT("Assertion failed: !iMagic"));
 
-		const FVector2D& p = Verts[L];
-		const FVector2D& L0 = Verts[K];
-		const FVector2D& L1 = Verts[I];
+		FVector2D p = Verts[L];
+		FVector2D L0 = Verts[K];
+		FVector2D L1 = Verts[I];
 
 		return !FGeom::ToTheLeft(p, L0, L1);
 	}
 	
 	checkf(K >= 0 && L >= 0 && I >= 0 && J >= 0, TEXT("Assertion failed: k >= 0 && l >= 0 && i >= 0 && j >= 0"));
 
-	const FVector2D& p = Verts[L];
-	const FVector2D& C0 = Verts[K];
-	const FVector2D& C1 = Verts[I];
-	const FVector2D& C2 = Verts[J];
+	FVector2D p = Verts[L];
+	FVector2D C0 = Verts[K];
+	FVector2D C1 = Verts[I];
+	FVector2D C2 = Verts[J];
 
 	checkf(FGeom::ToTheLeft(C2, C0, C1), TEXT("Assertion failed: Geom::ToTheLeft(c2, c0, c1)"));
 	checkf(FGeom::ToTheLeft(C2, C1, p), TEXT("Assertion failed: Geom::ToTheLeft(c2, c1, p)"));
@@ -237,13 +228,13 @@ bool FDelaunayCalculator::LegalEdge(const int K, const int L, const int I, const
 	return !FGeom::InsideCircumcircle(p, C0, C1, C2);
 }
 
-void FDelaunayCalculator::LegalizeEdge(const int Ti0, int Ti1, const int PiP, const int Li0, const int Li1)
+void FDelaunayCalculator::LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1)
 {
 	Ti1 = LeafWithEdge(Ti1, Li0, Li1);
 
-	const FTriangleNode T0 = Triangles[Ti0];
-	const FTriangleNode T1 = Triangles[Ti1];
-	const int Qi = T1.OtherPoint(Li0, Li1);
+	FTriangleNode T0 = Triangles[Ti0];
+	FTriangleNode T1 = Triangles[Ti1];
+	int Qi = T1.OtherPoint(Li0, Li1);
 
 	check(T0.HasEdge(Li0, Li1));
 	check(T1.HasEdge(Li0, Li1));
@@ -254,8 +245,8 @@ void FDelaunayCalculator::LegalizeEdge(const int Ti0, int Ti1, const int PiP, co
 
 	if (!LegalEdge(PiP, Qi, Li0, Li1)) 
 	{
-		const int Ti2 = Triangles.Num();
-		const int Ti3 = Ti2 + 1;
+		int Ti2 = Triangles.Num();
+		int Ti3 = Ti2 + 1;
 
 		FTriangleNode T2 = FTriangleNode(PiP, Li0, Qi);
 		FTriangleNode T3 = FTriangleNode(PiP, Qi, Li1);
@@ -288,13 +279,13 @@ void FDelaunayCalculator::LegalizeEdge(const int Ti0, int Ti1, const int PiP, co
 	}
 }
 
-int FDelaunayCalculator::FindTriangleNode(const int PiP)
+int FDelaunayCalculator::FindTriangleNode(int PiP)
 {
 	int Curr = 0;
 
 	while (!Triangles[Curr].IsLeaf())
 	{
-		if (const FTriangleNode& t = Triangles[Curr]; t.C0 >= 0 && PointInTriangle(PiP, t.C0))
+		if (FTriangleNode& t = Triangles[Curr]; t.C0 >= 0 && PointInTriangle(PiP, t.C0))
 		{
 			Curr = t.C0;
 		}
@@ -311,15 +302,15 @@ int FDelaunayCalculator::FindTriangleNode(const int PiP)
 	return Curr;
 }
 
-bool FDelaunayCalculator::PointInTriangle(const int PiP, const int Ti)
+bool FDelaunayCalculator::PointInTriangle(int PiP, int Ti)
 {
-	const FTriangleNode t = Triangles[Ti];
+	FTriangleNode t = Triangles[Ti];
 	return ToTheLeft(PiP, t.P0, t.P1)
 		&& ToTheLeft(PiP, t.P1, t.P2)
 		&& ToTheLeft(PiP, t.P2, t.P0);
 }
 
-bool FDelaunayCalculator::ToTheLeft(const int PiP, const int Li0, const int Li1)
+bool FDelaunayCalculator::ToTheLeft(int PiP, int Li0, int Li1)
 {
 	if (Li0 == -2)
 	{
