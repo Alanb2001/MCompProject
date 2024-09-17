@@ -1,8 +1,0 @@
-{
-	"SourceFiles": [
-		"F:\\Unreal Projects\\MCompProject\\Source\\MCompProject\\MCompProject.Build.cs",
-		"F:\\Unreal Projects\\MCompProject\\Source\\MCompProject.Target.cs",
-		"F:\\Unreal Projects\\MCompProject\\Source\\MCompProjectEditor.Target.cs"
-	],
-	"EngineVersion": "5.4.4"
-}
