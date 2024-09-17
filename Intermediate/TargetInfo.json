@@ -2,12 +2,12 @@
 	"Targets": [
 		{
 			"Name": "MCompProject",
-			"Path": "D:\\Unreal Projects\\MCompProject\\Source\\MCompProject.Target.cs",
+			"Path": "..\\Source\\MCompProject.Target.cs",
 			"Type": "Game"
 		},
 		{
 			"Name": "MCompProjectEditor",
-			"Path": "D:\\Unreal Projects\\MCompProject\\Source\\MCompProjectEditor.Target.cs",
+			"Path": "..\\Source\\MCompProjectEditor.Target.cs",
 			"Type": "Editor"
 		}
 	]

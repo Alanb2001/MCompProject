@@ -2,8 +2,8 @@
 
 FFVoronoiDiagram::FFVoronoiDiagram()
 {
-    Triangulation = new FDelaunayTriangulation();
-    Sites = &Triangulation->Vertices;
+    Triangulation = FDelaunayTriangulation();
+    Sites = &Triangulation.Vertices;
     Vertices = TArray<FVector2D>();
     Edges = TArray<FFEdge>();
     FirstEdgeBySite = TArray<int>();
@@ -11,7 +11,7 @@ FFVoronoiDiagram::FFVoronoiDiagram()
 
 void FFVoronoiDiagram::Clear()
 {
-    Triangulation->Clear();
+    Triangulation.Clear();
     Sites->Empty();
     Vertices.Empty();
     Edges.Empty();

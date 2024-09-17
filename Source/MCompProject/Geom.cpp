@@ -7,7 +7,19 @@ bool FGeom::AreCoincident(FVector2D A, FVector2D B)
 
 bool FGeom::ToTheLeft(FVector2D P, FVector2D L0, FVector2D L1)
 {
-    return (L1.X - L0.X) * (P.Y - L0.Y) - (L1.Y - L0.Y) * (P.X - L0.X) >= 0;
+    return ((L1.X - L0.X) * (P.Y - L0.Y) - (L1.Y - L0.Y) * (P.X - L0.X)) >= 0;
+}
+
+bool FGeom::ToTheRight(FVector2D P, FVector2D L0, FVector2D L1)
+{
+    return !ToTheLeft(P, L0, L1);
+}
+
+bool FGeom::PointInTriangle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2)
+{
+    return ToTheLeft(P, C0, C1)
+            && ToTheLeft(P, C1, C2)
+            && ToTheLeft(P, C2, C0);
 }
 
 bool FGeom::InsideCircumcircle(FVector2D P, FVector2D C0, FVector2D C1, FVector2D C2)
@@ -31,15 +43,19 @@ FVector2D FGeom::RotateRightAngle(FVector2D V)
     float x = V.X;
     V.X = -V.Y;
     V.Y = x;
+
     return V;
 }
 
 bool FGeom::LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1, float& M0, float& M1)
 {
-    if (float Det = V0.X * V1.Y - V0.Y * V1.X; FMath::Abs(Det) < 0.001f)
+    float Det = V0.X * V1.Y - V0.Y * V1.X;
+
+    if (FMath::Abs(Det) < 0.001f)
     {
         M0 = NAN;
         M1 = NAN;
+
         return false;
     }
     else
@@ -61,14 +77,16 @@ bool FGeom::LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVect
 
 FVector2D FGeom::LineLineIntersection(FVector2D P0, FVector2D V0, FVector2D P1, FVector2D V1)
 {
-    float M1;
+    float M0, M1;
 
-    if (float M0; LineLineIntersection(P0, V0, P1, V1, M0, M1)) 
+    if (LineLineIntersection(P0, V0, P1, V1, M0, M1)) 
     {
         return P0 + M0 * V0;
     }
-    
-    return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+    else
+    {
+        return FVector2D(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
+    }
 }
 
 FVector2D FGeom::CircumcircleCenter(FVector2D C0, FVector2D C1, FVector2D C2)
@@ -88,7 +106,7 @@ FVector2D FGeom::CircumcircleCenter(FVector2D C0, FVector2D C1, FVector2D C2)
 
 FVector2D FGeom::TriangleCentroid(FVector2D C0, FVector2D C1, FVector2D C2)
 {
-    FVector2D Val = 1.0f / 3.0f * (C0 + C1 + C2);
+    FVector2D Val = (1.0f / 3.0f) * (C0 + C1 + C2);
     return Val;
 }
 
@@ -99,7 +117,7 @@ float FGeom::Area(TArray<FVector2D> Polygon)
 
     for (int i = 0; i < Count; i++)
     {
-        int j = i == Count - 1 ? 0 : i + 1;
+        int j = (i == Count - 1) ? 0 : (i + 1);
 
         FVector2D P0 = Polygon[i];
         FVector2D P1 = Polygon[j];

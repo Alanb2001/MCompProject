@@ -3,6 +3,11 @@
 #include "CoreMinimal.h"
 #include "DelaunayTriangulation.h"
 
+#include <stdexcept>
+#include <string>
+#include <cassert>
+#include <iostream>
+
 struct FTriangleNode
 {
 	int P0;
@@ -70,6 +75,7 @@ struct FTriangleNode
 			{
 				return P1;
 			}
+
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 		if (P0P == P1)
@@ -82,6 +88,7 @@ struct FTriangleNode
 			{
 				return P0;
 			}
+
 			throw std::invalid_argument("p0 and p1 not on triangle");
 		}
 		if (P0P == P2)
@@ -115,6 +122,7 @@ struct FTriangleNode
 		{
 			return A2;
 		}
+
 		throw std::invalid_argument("p not in triangle");
 	}
 };
@@ -123,12 +131,14 @@ class FDelaunayCalculator
 {
 public:
 	int Highest = -1;
-	TArray<FVector2D> Verts;
+	TArray<FVector2D> verts;
+
+	TArray<int> indices;
 	TArray<FTriangleNode> Triangles;
 
 	FDelaunayCalculator();
 	
-	void CalculateTriangulation(TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result);
+	void CalculateTriangulation(TArray<FVector2D> Verts1, FDelaunayTriangulation* Result);
 
 	bool Higher(int PI0, int PI1);
 
@@ -136,11 +146,13 @@ public:
 
 	void GenerateResult(FDelaunayTriangulation* Result);
 	
+	void ShuffleIndices();
+
 	int LeafWithEdge(int Ti, int E0, int E1);
 
 	bool LegalEdge(int K, int L, int I, int J);
 
-	void LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1);
+	void LegaliseEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1);
 
 	int FindTriangleNode(int PiP);
 

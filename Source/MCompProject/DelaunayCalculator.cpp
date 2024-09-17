@@ -4,23 +4,24 @@
 FDelaunayCalculator::FDelaunayCalculator()
 {
 	Triangles = TArray<FTriangleNode>();
+	indices = TArray<int>();
 }
 
-void FDelaunayCalculator::CalculateTriangulation(TArray<FVector2D>& Verts1, FDelaunayTriangulation* Result)
+void FDelaunayCalculator::CalculateTriangulation(TArray<FVector2D> Verts1, FDelaunayTriangulation* Result)
 {
-	if (Verts1.Num() == 0) 
+	if (Verts1.Num() == NULL) 
 	{
-		throw std::invalid_argument("Points");
+		UE_LOG(LogTemp, Warning, TEXT("Points"));
 	}
 	
 	if (Verts1.Num() < 3)
 	{
-		throw std::invalid_argument("You need at least 3 points for a triangulation");
+		UE_LOG(LogTemp, Warning, TEXT("You need at least 3 points for a triangulation"));
 	}
-
+	
 	Triangles.Empty();
-	this->Verts = Verts1;
-
+	this->verts = Verts1;
+	
 	Highest = 0;
 
 	for (int i = 0; i < Verts1.Num(); i++)
@@ -36,7 +37,7 @@ void FDelaunayCalculator::CalculateTriangulation(TArray<FVector2D>& Verts1, FDel
 	RunBowyerWatson();
 	GenerateResult(Result);
 
-	this->Verts.Empty();
+	this->verts.Empty();
 }
 
 bool FDelaunayCalculator::Higher(int PI0, int PI1)
@@ -45,36 +46,41 @@ bool FDelaunayCalculator::Higher(int PI0, int PI1)
 	{
 		return false;
 	}
-	if (PI0 == -1)
+	else if (PI0 == -1)
 	{
 		return true;
 	}
-	if (PI1 == -2)
+	else if (PI1 == -2)
 	{
 		return true;
 	}
-	if (PI1 == -1)
+	else if (PI1 == -1)
 	{
 		return false;
 	}
-
-	FVector2D P0 = Verts[PI0];
-	FVector2D P1 = Verts[PI1];
-
-	if (P0.Y < P1.Y)
+	else
 	{
-		return true;
+		FVector2D P0 = verts[PI0];
+		FVector2D P1 = verts[PI1];
+
+		if (P0.Y < P1.Y)
+		{
+			return true;
+		}
+		else if (P0.Y > P1.Y)
+		{
+			return false;
+		}
+		else
+		{
+			return P0.X < P1.X;
+		}
 	}
-	if (P0.Y > P1.Y)
-	{
-		return false;
-	}
-	return P0.X < P1.X;
 }
 
 void FDelaunayCalculator::RunBowyerWatson()
 {
-	for (int i = 0; i < Verts.Num(); i++)
+	for (int i = 0; i < verts.Num(); i++)
 	{
 		int PiP = i;
 		
@@ -121,9 +127,18 @@ void FDelaunayCalculator::RunBowyerWatson()
 		Triangles.Add(Nt1);
 		Triangles.Add(Nt2);
 
-		if (Nt0.A0 != -1) LegalizeEdge(Nti0, Nt0.A0, PiP, P0, P1);
-		if (Nt1.A0 != -1) LegalizeEdge(Nti1, Nt1.A0, PiP, P1, P2);
-		if (Nt2.A0 != -1) LegalizeEdge(Nti2, Nt2.A0, PiP, P2, P0);
+		if (Nt0.A0 != -1)
+		{
+			LegaliseEdge(Nti0, Nt0.A0, PiP, P0, P1);
+		}
+		if (Nt1.A0 != -1)
+		{
+			LegaliseEdge(Nti1, Nt1.A0, PiP, P1, P2);
+		}
+		if (Nt2.A0 != -1)
+		{
+			LegaliseEdge(Nti2, Nt2.A0, PiP, P2, P0);
+		}
 	}
 }
 
@@ -136,14 +151,16 @@ void FDelaunayCalculator::GenerateResult(FDelaunayTriangulation* Result)
 
 	Result->Clear();
 
-	for (int i = 0; i < Verts.Num(); i++)
+	for (int i = 0; i < verts.Num(); i++)
 	{
-		Result->Vertices.Add(Verts[i]);
+		Result->Vertices.Add(verts[i]);
 	}
 
 	for (int i = 1; i < Triangles.Num(); i++)
 	{
-		if (FTriangleNode& t = Triangles[i]; t.IsLeaf() && t.IsInner())
+		FTriangleNode& t = Triangles[i];
+
+		if (t.IsLeaf() && t.IsInner())
 		{
 			Result->Triangles.Add(t.P0);
 			Result->Triangles.Add(t.P1);
@@ -152,13 +169,35 @@ void FDelaunayCalculator::GenerateResult(FDelaunayTriangulation* Result)
 	}
 }
 
+void FDelaunayCalculator::ShuffleIndices()
+{
+	indices.Empty();
+	indices.Reserve(verts.Num());
+
+	for (int i = 0; i < verts.Num(); i++)
+	{
+		indices.Add(i);
+	}
+
+	assert(indices.Num() == verts.Num());
+
+	for (int i = 0; i < verts.Num() - 1; i++)
+	{
+		int j = FMath::RandRange(i, verts.Num() - 1);
+		
+		indices.Swap(i, j);
+	}
+}
+
 int FDelaunayCalculator::LeafWithEdge(int Ti, int E0, int E1)
 {
-	check(Triangles[Ti].HasEdge(E0, E1));
+	assert(Triangles[Ti].HasEdge(E0, E1));
 
 	while (!Triangles[Ti].IsLeaf())
 	{
-		if (FTriangleNode t = Triangles[Ti]; t.C0 != -1 && Triangles[t.C0].HasEdge(E0, E1))
+		FTriangleNode& t = Triangles[Ti];
+
+		if (t.C0 != -1 && Triangles[t.C0].HasEdge(E0, E1))
 		{
 			Ti = t.C0;
 		}
@@ -172,8 +211,8 @@ int FDelaunayCalculator::LeafWithEdge(int Ti, int E0, int E1)
 		}
 		else
 		{
-			check(false);
-			throw std::exception("This should never happen");
+			assert(false);
+			throw std::runtime_error("This should never happen");
 		}
 	}
 
@@ -182,53 +221,55 @@ int FDelaunayCalculator::LeafWithEdge(int Ti, int E0, int E1)
 
 bool FDelaunayCalculator::LegalEdge(int K, int L, int I, int J)
 {
-	checkf(K != Highest && K >= 0, TEXT("Assertion failed: k != highest && k >= 0"));
+	assert(K != Highest && K >= 0);
 
 	bool bLMagic = L < 0;
 	bool bIMagic = I < 0;
 	bool bJMagic = J < 0;
 
-	checkf(!(bIMagic && bJMagic), TEXT("Assertion failed: !(iMagic && jMagic)"));
+	assert(!(bIMagic && bJMagic));
 
 	if (bLMagic)
 	{
 		return true;
 	}
-	if (bIMagic)
+	else if (bIMagic)
 	{
-		checkf(!bJMagic, TEXT("Assertion failed: !jMagic"));
+		assert(!bJMagic);
 
-		FVector2D p = Verts[L];
-		FVector2D L0 = Verts[K];
-		FVector2D L1 = Verts[J];
+		FVector2D p = verts[L];
+		FVector2D L0 = verts[K];
+		FVector2D L1 = verts[J];
 
 		return FGeom::ToTheLeft(p, L0, L1);
 	}
-	if (bJMagic)
+	else if (bJMagic)
 	{
-		checkf(!bIMagic, TEXT("Assertion failed: !iMagic"));
+		assert(!bIMagic);
 
-		FVector2D p = Verts[L];
-		FVector2D L0 = Verts[K];
-		FVector2D L1 = Verts[I];
+		FVector2D p = verts[L];
+		FVector2D L0 = verts[K];
+		FVector2D L1 = verts[I];
 
 		return !FGeom::ToTheLeft(p, L0, L1);
 	}
-	
-	checkf(K >= 0 && L >= 0 && I >= 0 && J >= 0, TEXT("Assertion failed: k >= 0 && l >= 0 && i >= 0 && j >= 0"));
+	else
+	{
+		assert(K >= 0 && L >= 0 && I >= 0 && J >= 0);
 
-	FVector2D p = Verts[L];
-	FVector2D C0 = Verts[K];
-	FVector2D C1 = Verts[I];
-	FVector2D C2 = Verts[J];
+		FVector2D p = verts[L];
+		FVector2D C0 = verts[K];
+		FVector2D C1 = verts[I];
+		FVector2D C2 = verts[J];
 
-	checkf(FGeom::ToTheLeft(C2, C0, C1), TEXT("Assertion failed: Geom::ToTheLeft(c2, c0, c1)"));
-	checkf(FGeom::ToTheLeft(C2, C1, p), TEXT("Assertion failed: Geom::ToTheLeft(c2, c1, p)"));
+		assert(FGeom::ToTheLeft(C2, C0, C1));
+		assert(FGeom::ToTheLeft(C2, C1, p));
 
-	return !FGeom::InsideCircumcircle(p, C0, C1, C2);
+		return !FGeom::InsideCircumcircle(p, C0, C1, C2);
+	}
 }
 
-void FDelaunayCalculator::LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1)
+void FDelaunayCalculator::LegaliseEdge(int Ti0, int Ti1, int PiP, int Li0, int Li1)
 {
 	Ti1 = LeafWithEdge(Ti1, Li0, Li1);
 
@@ -236,12 +277,12 @@ void FDelaunayCalculator::LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int L
 	FTriangleNode T1 = Triangles[Ti1];
 	int Qi = T1.OtherPoint(Li0, Li1);
 
-	check(T0.HasEdge(Li0, Li1));
-	check(T1.HasEdge(Li0, Li1));
-	check(T0.IsLeaf());
-	check(T1.IsLeaf());
-	check(T0.P0 == PiP || T0.P1 == PiP || T0.P2 == PiP);
-	check(T1.P0 == Qi || T1.P1 == Qi || T1.P2 == Qi);
+	assert(T0.HasEdge(Li0, Li1));
+	assert(T1.HasEdge(Li0, Li1));
+	assert(T0.IsLeaf());
+	assert(T1.IsLeaf());
+	assert(T0.P0 == PiP || T0.P1 == PiP || T0.P2 == PiP);
+	assert(T1.P0 == Qi || T1.P1 == Qi || T1.P2 == Qi);
 
 	if (!LegalEdge(PiP, Qi, Li0, Li1)) 
 	{
@@ -274,8 +315,15 @@ void FDelaunayCalculator::LegalizeEdge(int Ti0, int Ti1, int PiP, int Li0, int L
 		Triangles[Ti0] = nt0;
 		Triangles[Ti1] = nt1;
 
-		if (T2.A0 != -1) LegalizeEdge(Ti2, T2.A0, PiP, Li0, Qi);
-		if (T3.A0 != -1) LegalizeEdge(Ti3, T3.A0, PiP, Qi, Li1);
+		if (T2.A0 != -1)
+		{
+			LegaliseEdge(Ti2, T2.A0, PiP, Li0, Qi);
+		}
+
+		if (T3.A0 != -1)
+		{
+			LegaliseEdge(Ti3, T3.A0, PiP, Qi, Li1);
+		}
 	}
 }
 
@@ -285,7 +333,9 @@ int FDelaunayCalculator::FindTriangleNode(int PiP)
 
 	while (!Triangles[Curr].IsLeaf())
 	{
-		if (FTriangleNode& t = Triangles[Curr]; t.C0 >= 0 && PointInTriangle(PiP, t.C0))
+		FTriangleNode& t = Triangles[Curr];
+
+		if (t.C0 >= 0 && PointInTriangle(PiP, t.C0))
 		{
 			Curr = t.C0;
 		}
@@ -316,21 +366,23 @@ bool FDelaunayCalculator::ToTheLeft(int PiP, int Li0, int Li1)
 	{
 		return Higher(Li1, PiP);
 	}
-	if (Li0 == -1)
+	else if (Li0 == -1)
 	{
 		return Higher(PiP, Li1);
 	}
-	if (Li1 == -2)
+	else if (Li1 == -2)
 	{
 		return Higher(PiP, Li0);
 	}
-	if (Li1 == -1)
+	else if (Li1 == -1)
 	{
 		return Higher(Li0, PiP);
 	}
-	
-	check(Li0 >= 0);
-	check(Li1 >= 0);
+	else
+	{
+		assert(Li0 >= 0);
+		assert(Li1 >= 0);
 
-	return FGeom::ToTheLeft(Verts[PiP], Verts[Li0], Verts[Li1]);
+		return FGeom::ToTheLeft(verts[PiP], verts[Li0], verts[Li1]);
+	}
 }

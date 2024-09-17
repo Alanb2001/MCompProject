@@ -10,5 +10,6 @@ public class MCompProjectEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.AddRange( new string[] { "MCompProject" } );
+		bOverrideBuildEnvironment = true;
 	}
 }

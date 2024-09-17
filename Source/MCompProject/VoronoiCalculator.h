@@ -11,7 +11,7 @@ class FVoronoiCalculator
 	{
 		int Point;
 		int Triangle;
-
+		
 		FPointTriangle(int PointP, int TriangleP)
 			: Point(PointP), Triangle(TriangleP)
 		{
@@ -52,7 +52,7 @@ class FVoronoiCalculator
 		{
 			check(pt0.Point == pt1.Point);
 
-			UE::Math::TVector2<double> rp = verts[pt0.Point];
+			FVector2D rp = verts[pt0.Point];
 			
 			FVector2D p0 = Centroid(pt0) - rp;
 			FVector2D p1 = Centroid(pt1) - rp;

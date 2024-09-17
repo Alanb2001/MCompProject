@@ -3,9 +3,9 @@
 
 FVoronoiCalculator::FVoronoiCalculator()
 {
-	Cmp = FPTComparer();
-	DelCalc = FDelaunayCalculator();
 	Pts = TArray<FPointTriangle>();
+	DelCalc = FDelaunayCalculator();
+	Cmp = FPTComparer();
 }
 
 FFVoronoiDiagram FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices)
@@ -19,10 +19,10 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 {
 	if (InputVertices.Num() < 3)
 	{
-		throw std::runtime_error("Not implemented for < 3 vertices");
+		UE_LOG(LogTemp, Error, TEXT("Not implemented for < 3 vertices"));
 	}
-	
-	FDelaunayTriangulation* Trig = Result.Triangulation;
+
+	FDelaunayTriangulation* Trig = &Result.Triangulation;
 
 	Result.Clear();
 
@@ -30,9 +30,9 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 
 	Pts.Empty();
 
-	TArray<UE::Math::TVector2<double>>& Verts = Trig->Vertices;
-	TArray<int>& Tris = Trig->Triangles;
-	TArray<UE::Math::TVector2<double>>& Centers = Result.Vertices;
+	TArray<FVector2D> Verts = Trig->Vertices;
+	TArray<int> Tris = Trig->Triangles;
+	TArray<FVector2D>& Centers = Result.Vertices;
 	TArray<FFVoronoiDiagram::FFEdge>& Edges = Result.Edges;
 	
 	if (Tris.Num() > Pts.Max())
@@ -44,11 +44,21 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 		Edges.Reserve(Tris.Num());
 	}
 
+	//for (int i = 0; i < Verts.Num(); i++)
+	//{
+	//	Verts[i].Normalize(0.01f);
+	//}
+	//
+	//for (int i = 0; i < InputVertices.Num(); i++)
+	//{
+	//	InputVertices[i].Normalize(0.01f);
+	//}
+	
 	for (int Ti = 0; Ti < Tris.Num(); Ti += 3)
 	{
-		UE::Math::TVector2<double> P0 = Verts[Tris[Ti]];
-		UE::Math::TVector2<double> P1 = Verts[Tris[Ti + 1]];
-		UE::Math::TVector2<double> P2 = Verts[Tris[Ti + 2]];
+		FVector2D P0 = Verts[Tris[Ti]];
+		FVector2D P1 = Verts[Tris[Ti + 1]];
+		FVector2D P2 = Verts[Tris[Ti + 2]];
 
 		check(FGeom::ToTheLeft(P2, P0, P1));
 
@@ -58,7 +68,7 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 	for (int Ti = 0; Ti < Tris.Num(); Ti += 3)
 	{
 		Pts.Add(FPointTriangle(Tris[Ti], Ti));
-		Pts.Add(FPointTriangle(Tris[Ti + 1], Ti));
+ 		Pts.Add(FPointTriangle(Tris[Ti + 1], Ti));
 		Pts.Add(FPointTriangle(Tris[Ti + 2], Ti));
 	}
 
@@ -76,7 +86,7 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 
 		int Start = i;
 		int End = -1;
-
+		
 		for (int j = i + 1; j < Pts.Num(); j++)
 		{
 			if (Pts[i].Point != Pts[j].Point)
@@ -85,7 +95,7 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 				break;
 			}
 		}
-
+		
 		if (End == -1)
 		{
 			End = Pts.Num() - 1;
@@ -103,7 +113,7 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 
 			int PtiNext = PtiCurr + 1;
 
-			if (PtiNext > End)
+ 			if (PtiNext > End)
 			{
 				PtiNext = Start;
 			}
@@ -114,9 +124,9 @@ void FVoronoiCalculator::CalculateDiagram(TArray<FVector2D> InputVertices, FFVor
 			int TiCurr = PtCurr.Triangle;
 			int TiNext = PtNext.Triangle;
 
-			UE::Math::TVector2<double> p0 = Verts[PtCurr.Point];
+			FVector2D p0 = Verts[PtCurr.Point];
 
-			FVector2D V2NAN = FVector2D(0, 0);
+			FVector2D V2NAN = FVector2D(NAN, NAN);
 
 			if (Count == 0)
 			{

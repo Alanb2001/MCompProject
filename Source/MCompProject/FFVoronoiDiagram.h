@@ -25,7 +25,7 @@ public:
         FFEdge(const EDgeType InType, const int InSite, const int InVert0, const int InVert1, const FVector2D InDirection)
             : Type(InType), Site(InSite), Vert0(InVert0), Vert1(InVert1), Direction(InDirection) {}
     };
-    FDelaunayTriangulation* Triangulation;
+    FDelaunayTriangulation Triangulation;
     TArray<FVector2D>* Sites;
     TArray<FVector2D> Vertices;
     TArray<FFEdge> Edges;

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <None Include="..\..\MCompProject.uproject" />
@@ -13,6 +13,7 @@
     </None>
     <None Include="..\..\.gitattributes" />
     <None Include="..\..\.gitignore" />
+    <None Include="..\..\.vsconfig" />
     <None Include="..\..\MCompProject.sln.DotSettings.user" />
     <Filter Include="Config">
       <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
@@ -111,12 +112,6 @@
       <Filter>Source\MCompProject</Filter>
     </ClCompile>
     <ClInclude Include="..\..\Source\MCompProject\StaticMeshRuntimeTest.h">
-      <Filter>Source\MCompProject</Filter>
-    </ClInclude>
-    <ClCompile Include="..\..\Source\MCompProject\VectorExtensions.cpp">
-      <Filter>Source\MCompProject</Filter>
-    </ClCompile>
-    <ClInclude Include="..\..\Source\MCompProject\VectorExtensions.h">
       <Filter>Source\MCompProject</Filter>
     </ClInclude>
     <ClCompile Include="..\..\Source\MCompProject\VoronoiCalculator.cpp">

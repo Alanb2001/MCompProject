@@ -94,12 +94,18 @@ void ABreakable::Reload()
 
 void ABreakable::OnCollision(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& SweepResult)
 {
-    if (Age > 5 && OtherComp->GetPhysicsLinearVelocity().Size() > MinImpactToBreak)
-    {
-	    const FVector Pnt = SweepResult.ImpactPoint;
-	    const FVector LocalPnt = HitComp->GetComponentTransform().InverseTransformPosition(Pnt);
-        Break(FVector2D(LocalPnt.X, LocalPnt.Y));
-    }
+	const FVector Pnt = SweepResult.ImpactPoint;
+	const FVector LocalPnt = HitComp->GetComponentTransform().InverseTransformPosition(Pnt);
+	Break(FVector2D(LocalPnt.X, LocalPnt.Y));
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Break"));
+
+    //if (Age > 5 && OtherComp->GetPhysicsLinearVelocity().Size() > MinImpactToBreak)
+    //{
+	//    const FVector Pnt = SweepResult.ImpactPoint;
+	//    const FVector LocalPnt = HitComp->GetComponentTransform().InverseTransformPosition(Pnt);
+    //    Break(FVector2D(LocalPnt.X, LocalPnt.Y));
+	//	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Break"));
+    //}
 }
 
 float ABreakable::NormalizedRandom(float Mean, float Stddev)
@@ -263,9 +269,9 @@ UStaticMesh* ABreakable::MeshFromPolygon(TArray<FVector2D> Polygon1, float Thick
 	    MeshDescBuilder.AppendTriangle(VertexInstanceIds[Tris[Ti++] = Si], VertexInstanceIds[Tris[Ti++] = Si + 2], VertexInstanceIds[Tris[Ti++] = Si + 3], PolygonGroup);
 	}
 	
-	check(Ti == Tris.Num());
-	check(VI == Verts.Num());
-	check(Ni == Norms.Num());
+	assert(Ti == Tris.Num());
+	assert(VI == Verts.Num());
+	assert(Ni == Norms.Num());
 	
 	UStaticMesh* StaticMesh = NewObject<UStaticMesh>(this);
 	StaticMesh->GetStaticMaterials().Add(FStaticMaterial());
@@ -284,5 +290,4 @@ UStaticMesh* ABreakable::MeshFromPolygon(TArray<FVector2D> Polygon1, float Thick
 	Mesh->InitResources();
 	
 	return StaticMesh;
-	
 }
